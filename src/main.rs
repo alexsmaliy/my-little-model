@@ -5,6 +5,7 @@ use std::{fmt::Display, ops::{Add, Index, IndexMut, Mul, Neg}};
 
 fn main() {
     println!("Hello, world!");
+    println!("{}", Matrix::diag(&[1., 2., 3.]))
 }
 
 // a dense column-ordered matrix
@@ -49,6 +50,15 @@ impl<const D: usize> Matrix<D, D> where [(); D*D]: {
         let mut arr = [0f32; D*D];
         for i in 0..D {
             arr[i * D + i] = 1f32;
+        }
+        Matrix(arr)
+    }
+
+    #[allow(dead_code)]
+    pub fn diag(main_diag: &[f32; D]) -> Self {
+        let mut arr = [0f32; D*D];
+        for i in 0..D {
+            arr[i * D + i] = main_diag[i];
         }
         Matrix(arr)
     }
