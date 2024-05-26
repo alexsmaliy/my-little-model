@@ -94,6 +94,20 @@ impl<const R: usize, const C: usize> Add<f32> for &Matrix<R, C> where [(); R*C]:
     }
 }
 
+impl<const R: usize, const C: usize> Sub for &Matrix<R, C> where [(); R*C]: {
+    type Output = Matrix<R, C>;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        let mut arr = [0f32; R*C];
+        self.0.iter()
+            .zip(rhs.0.iter())
+            .map(|(n, m)| n - m)
+            .enumerate()
+            .for_each(|(i, x)| arr[i] = x);
+        Matrix(arr)
+    }
+}
+
 impl<const R: usize, const C: usize, const C2: usize> Mul<&Matrix<C, C2>> for &Matrix<R, C>
     where [(); R*C]: Sized, [(); C*C2]: Sized, [(); R*C2]: Sized // boilerplate
 {
@@ -237,6 +251,20 @@ impl<const N: usize> Vector<N> {
         let x = self.0.iter().fold(0f32, |acc, x| acc + x*x);
         x
     }
+
+    pub fn outer<const M: usize>(&self, other: &Vector<M>) -> Matrix<N, M> where [(); N*M]: Sized {
+        let mut arr = [0f32; N*M];
+        for m in 0..M {
+            arr[m*N..(m+1)*N].copy_from_slice(&(other[m] * self).0);
+        }
+        Matrix::from_arr(arr)
+    }
+
+    // #[allow(non_snake_case)]
+    // pub fn T(&self) -> Matrix<1, N> where [(); 1*N]: Sized {
+    //     let arr: [f32; 1*N] = self.0.iter().copied().collect::<Vec<f32>>().try_into().unwrap(); // TODO: fix
+    //     Matrix::<1, N>::from_arr(arr)
+    // }
 }
 
 impl<const N: usize> Add for &Vector<N> {
@@ -446,5 +474,19 @@ mod tests {
         for i in 0..5 {
             assert_eq!(v[i], 5. - i as f32);
         }
+    }
+
+    #[test]
+    fn vector_times_transpose() {
+        let v = Vector::from_arr([1., 2., 3., 4., 5.]);
+        let u = Vector::from_arr([1., 0., 2.]);
+
+        let expected = Matrix::from_cols(&[
+            [1., 2., 3., 4., 5.],
+            [0., 0., 0., 0., 0.],
+            [2., 4., 6., 8., 10.],
+        ]);
+
+        assert_eq!(v.outer(&u), expected);
     }
 }
