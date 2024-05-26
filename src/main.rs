@@ -1,427 +1,459 @@
+#![allow(non_snake_case, uncommon_codepoints)]
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 
-use std::{fmt::Display, ops::{Add, Index, IndexMut, Mul, Neg}};
+use std::marker::PhantomData;
 
-fn main() {
-    println!("Hello, world!");
-    println!("{}", Matrix::diag(&[1., 2., 3.]))
-}
+use linalg::{Matrix, Vector};
 
-// a dense column-ordered matrix
-#[derive(Debug)]
-pub struct Matrix<const R: usize, const C: usize>([f32; R*C]) where [(); R*C]: ;
+mod linalg;
 
-impl<const R: usize, const C: usize> Matrix<R, C> where [(); R*C]: {
-    #[allow(dead_code)]
-    pub fn zero() -> Self {
-        Matrix([0f32; R*C])
-    }
-
-    #[allow(dead_code)]
-    pub fn from_arr(arr: [f32; R*C]) -> Self {
-        Matrix(arr)
-    }
-
-    pub fn from_cols(cols: &[[f32; R]; C]) -> Self {
-        let mut arr = [0f32; R*C];
-        for c_ind in 0..C {
-            let from = c_ind * R;
-            let to = from + R;
-            let col = &cols[c_ind];
-            arr[from..to].copy_from_slice(col);
-        }
-        Matrix(arr)
-    }
-
-    #[allow(non_snake_case)]
-    pub fn T(&self) -> Matrix<C, R> where [(); C*R]: {
-        let mut arr = [0f32; C*R];
-        for i in 0..(C * R) {
-            arr[i] = self.0[(i % C) * R + (i / C)];
-        }
-        Matrix(arr)
-    }
-}
-
-impl<const D: usize> Matrix<D, D> where [(); D*D]: {
-    #[allow(dead_code, non_snake_case)]
-    pub fn I() -> Self {
-        let mut arr = [0f32; D*D];
-        for i in 0..D {
-            arr[i * D + i] = 1f32;
-        }
-        Matrix(arr)
-    }
-
-    #[allow(dead_code)]
-    pub fn diag(main_diag: &[f32; D]) -> Self {
-        let mut arr = [0f32; D*D];
-        for i in 0..D {
-            arr[i * D + i] = main_diag[i];
-        }
-        Matrix(arr)
-    }
-}
-
-impl<const R: usize, const C: usize> Add for &Matrix<R, C> where [(); R*C]: {
-    type Output = Matrix<R, C>;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        let mut arr = [0f32; R*C];
-        self.0.iter()
-            .zip(rhs.0.iter())
-            .map(|(n, m)| n + m)
-            .enumerate()
-            .for_each(|(i, x)| arr[i] = x);
-        Matrix(arr)
-    }
-}
-
-impl<const R: usize, const C: usize> Add<&Matrix<R, C>> for f32 where [(); R*C]: {
-    type Output = Matrix<R, C>;
-
-    fn add(self, rhs: &Matrix<R, C>) -> Self::Output {
-        let mut arr = [0f32; R*C];
-        rhs.0.iter()
-           .enumerate()
-           .for_each(|(i, x)| arr[i] = x + self);
-        Matrix(arr)
-    }
-}
-
-impl<const R: usize, const C: usize> Add<f32> for &Matrix<R, C> where [(); R*C]: {
-    type Output = Matrix<R, C>;
-
-    fn add(self, rhs: f32) -> Self::Output {
-        let mut arr = [0f32; R*C];
-        self.0.iter()
-            .enumerate()
-            .for_each(|(i, x)| arr[i] = x + rhs);
-        Matrix(arr)
-    }
-}
-
-impl<const R: usize, const C: usize, const C2: usize> Mul<&Matrix<C, C2>> for &Matrix<R, C>
-    where [(); R*C]: Sized, [(); C*C2]: Sized, [(); R*C2]: Sized // boilerplate
+pub trait ModelLayer<const IN: usize, const OUT: usize>
+    where
+        [(); IN*OUT]: Sized,
+        [(); OUT*IN]: Sized,
+        [(); OUT*OUT]: Sized,
 {
-    type Output = Matrix<R, C2>;
+    fn forward(&mut self, input_src: &Vector<IN>);
+    fn backward(&mut self, upstream_Wᵀs: &Vector<OUT>);
+    fn update_weights(&mut self, learning_rate: f32, a_prev: &Vector<IN>);
+    fn nonlinear_output(&self) -> &Vector<OUT>;
+    fn linear_output(&self) -> &Vector<OUT>;
+    fn f(&self) -> fn(f32) -> f32;
+    fn df(&self) -> fn(f32) -> f32;
+    fn set_sensitivities(&mut self, s: Vector<OUT>);
+    fn sensitivities(&self) -> &Vector<IN>;
+}
 
-    fn mul(self, rhs: &Matrix<C, C2>) -> Self::Output {
-        let mut arr = [0f32; R*C2];
-        for i in 0..(R * C2) {
-            let from = (i / R) * C;
-            let to = from + C;
-            let x: f32 = rhs.0[from..to]
-                .into_iter()
-                .enumerate()
-                .map(|(j, x)| x * self.0[j * R + i % R])
-                .sum();
-            arr[i] = x;
-        }
-        Matrix(arr)
+#[allow(dead_code)]
+struct FullyConnectedLayer<const IN: usize, const OUT: usize>
+    where [(); OUT*IN]: Sized
+{
+    W: Matrix<OUT, IN>, // weights
+    b: Vector<OUT>,     // biases
+    n: Vector<OUT>,     // net linear outputs
+    a: Vector<OUT>,     // net nonlinear outputs
+    s: Vector<OUT>,     // dL/dn of this layer
+    Wᵀs: Vector<IN>,    // weighted dL/dn for backwards pass
+    f: fn(f32) -> f32,
+    df: fn(f32) -> f32,
+}
+
+impl<const IN: usize, const OUT: usize> ModelLayer<IN, OUT> for FullyConnectedLayer<IN, OUT>
+    where
+        [(); IN*OUT]: Sized,
+        [(); OUT*IN]: Sized,
+        [(); OUT*OUT]: Sized,
+        [(); 1*IN]: Sized,
+        [(); IN*1]: Sized,
+{
+    fn forward(&mut self, input_src: &Vector<IN>) {
+        self.n = &(&self.W * input_src) + &self.b;
+        self.a = self.n.map(self.f);
+    }
+
+    fn backward(&mut self, upstream_Wᵀs: &Vector<OUT>) {
+        /*
+        // needs: n_i and df_i, but WT_i+1 and s_i+1
+        // thus: get upstream Wᵀs to compute and set own Wᵀs
+
+        let x = self.n1.map(self.df1).into();
+        let y = Matrix::diag(&x);
+        self.s1 = &y * &(&self.w2.T() * &self.s2);
+         */
+        let x = self.n.map(self.df).into();
+        let y = Matrix::diag(&x);
+        self.s = &y * upstream_Wᵀs;
+        self.Wᵀs = &self.W.T() * &self.s;
+    }
+
+    fn update_weights(&mut self, learning_rate: f32, a_prev: &Vector<IN>) {
+        self.W = &self.W - &(learning_rate * &(self.s.outer(a_prev)));
+        self.b = &self.b - &(learning_rate * &self.s);
+    }
+
+    fn nonlinear_output(&self) -> &Vector<OUT> {
+        &self.a
+    }
+
+    fn linear_output(&self) -> &Vector<OUT> {
+        &self.n
+    }
+
+    fn f(&self) -> fn(f32) -> f32 {
+        self.f
+    }
+
+    fn df(&self) -> fn(f32) -> f32 {
+        self.df
+    }
+
+    fn set_sensitivities(&mut self, s: Vector<OUT>) {
+        self.Wᵀs = &self.W.T() * &s;
+        self.s = s;
+    }
+
+    fn sensitivities(&self) -> &Vector<IN> {
+        &self.Wᵀs
     }
 }
 
-impl<const R: usize, const C: usize> Mul<&Vector<C>> for &Matrix<R, C> where [(); R*C]: {
-    type Output = Vector<R>;
+pub struct Model<const IN: usize, const OUT: usize, T, L: ModelLayerChain<IN, OUT, T>> {
+    layers: L,
+    last_input: Vector<IN>,
+    last_output: Vector<OUT>,
+    errors: Vector<OUT>,
+    loss: f32,
 
-    fn mul(self, rhs: &Vector<C>) -> Self::Output {
-        let mut arr = [0f32; R];
-        for i in 0..R {
-            let x: f32 = rhs.0
-                .into_iter()
-                .enumerate()
-                .map(|(j, x)| x * self.0[j * R + i])
-                .sum();
-            arr[i] = x;
+    _ph: PhantomData<T>,
+}
+
+impl<const IN: usize, const OUT: usize, T, L: ModelLayerChain<IN, OUT, T>> Model<IN, OUT, T, L> {
+    pub fn new(layers: L) -> Self {
+        Model {
+            layers,
+            last_input: Vector::zero(),
+            last_output: Vector::zero(),
+            errors: Vector::zero(),
+            loss: 0f32,
+            _ph: PhantomData::<T>
         }
-        Vector(arr)
+    }
+
+    pub fn run_once(&mut self, input: &Vector<IN>, target: &Vector<OUT>) {
+        let ModelOutput { loss, errors, output } = self.layers.run_once(input, target);
+        self.last_input = input.clone();
+        self.last_output = output;
+        self.loss = loss;
+        self.errors = errors;
     }
 } 
 
-impl<const R: usize, const C: usize> Mul<&Matrix<R, C>> for f32 where [(); R*C]: {
-    type Output = Matrix<R, C>;
-
-    fn mul(self, rhs: &Matrix<R, C>) -> Self::Output {
-        let mut arr = [0f32; R*C];
-        rhs.0.iter()
-           .enumerate()
-           .for_each(|(i, x)| arr[i] = x * self);
-        Matrix(arr)
-    }
+pub trait ModelLayerChain<const IN: usize, const OUT: usize, T> {
+    fn run_once(&mut self, input: &Vector<IN>, target: &Vector<OUT>) -> ModelOutput<OUT>;
 }
 
-impl<const R: usize, const C: usize> Mul<f32> for &Matrix<R, C> where [(); R*C]: {
-    type Output = Matrix<R, C>;
+impl<
+    const A: usize,
+    const B: usize,
+    const C: usize,
+    const D: usize,
+    L0: ModelLayer<A, B>,
+    L1: ModelLayer<B, C>,
+    L2: ModelLayer<C, D>,
+> ModelLayerChain<A, D, (
+    Box<dyn ModelLayer<A, B>>,
+    Box<dyn ModelLayer<B, C>>,
+    Box<dyn ModelLayer<C, D>>,
+)> for (
+    L0, L1, L2,
+) where
+    [(); A*B]: Sized,
+    [(); B*A]: Sized,
+    [(); B*B]: Sized,
+    [(); B*C]: Sized,
+    [(); C*B]: Sized,
+    [(); C*C]: Sized,
+    [(); C*D]: Sized,
+    [(); D*C]: Sized,
+    [(); D*D]: Sized,
+{
+    fn run_once(&mut self, item: &Vector<A>, target: &Vector<D>) -> ModelOutput<D> {
+        let learning_rate: f32 = 0.001; // TODO
 
-    fn mul(self, rhs: f32) -> Self::Output {
-        let mut arr = [0f32; R*C];
-        self.0.iter()
-            .enumerate()
-            .for_each(|(i, x)| arr[i] = x * rhs);
-        Matrix(arr)
-    }
-}
+        self.0.forward(item);
+        self.1.forward(self.0.nonlinear_output());
+        self.2.forward(self.1.nonlinear_output());
 
-impl<const R: usize, const C: usize> Display for Matrix<R, C> where [(); R*C]: {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[")?;
-        for r in 0..R {
-            let mut arr = [0f32; C];
-            for c in 0..C {
-                arr[c] = self.0[c*R+r];
-            }
-            write!(f, "[{}]", arr.map(|n| n.to_string()).join(","))?;
+        let (n_last, df_last) = (self.2.linear_output(), self.2.df());
+        let tmp = (-2f32 * &n_last.map(df_last)).into();
+        let tmp = Matrix::diag(&tmp);
+        let errors = target - self.2.nonlinear_output();
+        let s_last = &tmp * &errors;
+        let loss = errors.sum_of_squares();
+
+        self.2.set_sensitivities(s_last);
+        self.1.backward(self.2.sensitivities());
+        self.0.backward(self.1.sensitivities());
+
+        self.0.update_weights(learning_rate, item);
+        self.1.update_weights(learning_rate, self.0.nonlinear_output());
+        self.2.update_weights(learning_rate, self.1.nonlinear_output());
+
+        return ModelOutput {
+            loss,
+            errors,
+            output: self.2.nonlinear_output().clone()
         }
-        write!(f, "]")
     }
 }
 
-impl<const R: usize, const C: usize> From<[f32; R*C]> for Matrix<R, C> {
-    fn from(arr: [f32; R*C]) -> Self {
-        Matrix(arr)
-    }
+pub struct ModelOutput<const DIM: usize> {
+    loss: f32,
+    errors: Vector<DIM>,
+    output: Vector<DIM>,
 }
 
-impl<const R: usize, const C: usize> From<[[f32; R]; C]> for Matrix<R, C> where [(); R*C]: {
-    fn from(cols: [[f32; R]; C]) -> Self {
-        Self::from_cols(&cols)
-    }
-}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-impl<const R: usize, const C: usize> PartialEq for Matrix<R, C> where [(); R*C]: {
-    fn eq(&self, other: &Self) -> bool {
-        self.0.eq(&other.0)
-    }
-}
+fn main() {
+    let mut chain = (
+        FullyConnectedLayer {
+            W: Matrix::from_cols(&[[0.05, 0.1, 0.2], [0.04, 0.1, 0.22], [0.71, 0.03, 0.23]]),
+            b: Vector::from_arr([0.12, 0.23, 0.45]),
+            n: Vector::zero(),
+            a: Vector::zero(),
+            s: Vector::zero(),
+            Wᵀs: Vector::zero(),
+            f: |x: f32| if x > 0f32 { x } else { 0.2 * x },
+            df: |x: f32| if x > 0f32 { 1f32 } else { 0.2 },
+        },
+        FullyConnectedLayer {
+            W: Matrix::from_cols(&[[0.15, 0.12, 0.21], [0.4, 0.01, 0.42], [0.75, 0.3, 0.3]]),
+            b: Vector::from_arr([0.1, 0.3, 0.5]),
+            n: Vector::zero(),
+            a: Vector::zero(),
+            s: Vector::zero(),
+            Wᵀs: Vector::zero(),
+            f: |x: f32| if x > 0f32 { 0.8 * x } else { 0.1 * x },
+            df: |x: f32| if x > 0f32 { 0.8 } else { 0.1 },
+        },
+        FullyConnectedLayer {
+            W: Matrix::from_cols(&[[0.715, 0.172, 0.271], [0.47, 0.07, 0.72], [0.5, 0.37, 0.73]]),
+            b: Vector::from_arr([0.17, 0.37, 0.75]),
+            n: Vector::zero(),
+            a: Vector::zero(),
+            s: Vector::zero(),
+            Wᵀs: Vector::zero(),
+            f: |x: f32| if x > 0f32 { 0.9 * x } else { 0.15 * x },
+            df: |x: f32| if x > 0f32 { 0.9 } else { 0.15 },
+        }
+    );
 
-// a dense column vector
-#[derive(Debug)]
-struct Vector<const N: usize>([f32; N]);
+    // let mut model = ManualModel {
+    //     w1: Matrix::from_cols(&[[0.05, 0.1, 0.2], [0.04, 0.1, 0.22], [0.71, 0.03, 0.23]]),
+    //     b1: Vector::from_arr([0.12, 0.23, 0.45]),
+        
+    //     n1: Vector::zero(),
+    //     a1: Vector::zero(),
+    //     s1: Vector::zero(),
+        
+    //     f1: |x: f32| if x > 0f32 { x } else { 0.2 * x },
+    //     df1: |x: f32| if x > 0f32 { 1f32 } else { 0.2 },
 
-impl<const N: usize> Vector<N> {
-    #[allow(dead_code)]
-    pub fn zero() -> Vector<N> {
-        Self([0f32; N])
-    }
+    //     w2: Matrix::from_cols(&[[0.15, 0.12, 0.21], [0.4, 0.01, 0.42], [0.75, 0.3, 0.3]]),
+    //     b2: Vector::from_arr([0.1, 0.3, 0.5]),
+        
+    //     n2: Vector::zero(),
+    //     a2: Vector::zero(),
+    //     s2: Vector::zero(),
+        
+    //     f2: |x: f32| if x > 0f32 { 0.8 * x } else { 0.1 * x },
+    //     df2: |x: f32| if x > 0f32 { 0.8 } else { 0.1 },
+
+    //     w3: Matrix::from_cols(&[[0.715, 0.172, 0.271], [0.47, 0.07, 0.72], [0.5, 0.37, 0.73]]),
+    //     b3: Vector::from_arr([0.17, 0.37, 0.75]),
+        
+    //     n3: Vector::zero(),
+    //     a3: Vector::zero(),
+    //     s3: Vector::zero(),
+        
+    //     f3: |x: f32| if x > 0f32 { 0.9 * x } else { 0.15 * x },
+    //     df3: |x: f32| if x > 0f32 { 0.9 } else { 0.15 },
+
+    //     curr_input: Vector::zero(),
+    //     curr_output: Vector::zero(),
+    //     curr_target: Vector::zero(),
+    //     curr_errors: Vector::zero(),
+    //     curr_loss: 0f32,
+    // };
+
+    // let input = Vector::from_arr([1., 2., 3.]);
+    // let target = Vector::from_arr([1., 2., 3.]);
     
+    // model.forward(&input, &target);
+    // model.backward();
+
+    // println!("Input: {input}\nTarget: {target}\nErrors: {}\nLoss: {}\nS_1: {}\nS_2: {}\nS_3: {}",
+    //     model.curr_errors, model.curr_loss, model.s1, model.s2, model.s3
+    // );
+
+    // let ModelOutput { loss: chain_loss, errors: chain_errors, .. } = chain.run_once(&input, &target);
+    // println!("");
+    // println!("Input: {input}\nTarget: {target}\nErrors: {chain_errors}\nLoss: {chain_loss}\nS_1: {}\nS_2: {}\nS_3: {}",
+    //     chain.0.s, chain.1.s, chain.2.s);
+    // model.n1[2] = model.n1[2] + 0.0001;
+    // model.forward_dummy_n1();
+
+    // println!("Input: {input}\nTarget: {target},Errors: {}\nLoss: {}\nS_3: {}",
+    //     model.curr_errors, model.curr_loss, model.s1
+    // );
+
+    let input = Vector::from_arr([1., 2., 3.]);
+    let target = Vector::from_arr([1., 2., 3.]);
+
+    let mut model = Model::new(chain);
+    // println!("{}\t{}", model.layers.0.W, model.layers.0.b);
+    // println!("{}\t{}", model.layers.1.W, model.layers.1.b);
+    // println!("{}\t{}", model.layers.2.W, model.layers.2.b);
+    // println!("");
+    for i in 0..5000 {
+        model.run_once(&input, &target);
+        if i % 100 == 0 {
+            println!("[{i:>4}/5000] Loss: {}", model.loss);
+        }
+    }
+    // println!("");
+    // println!("{}\t{}", model.layers.0.W, model.layers.0.b);
+    // println!("{}\t{}", model.layers.1.W, model.layers.1.b);
+    // println!("{}\t{}", model.layers.2.W, model.layers.2.b);
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct ManualModel<const IN: usize, const MID1: usize, const MID2: usize, const OUT: usize>
+    where [(); MID1*IN]: Sized, [(); MID2*MID1]: Sized, [(); OUT*MID2]: Sized
+{
+    pub w1: Matrix<MID1, IN>,
+    pub b1: Vector<MID1>,
+
+    pub n1: Vector<MID1>,
+    pub a1: Vector<MID1>,
+    pub s1: Vector<MID1>,
+    
+    pub f1: fn(f32) -> f32,
+    pub df1: fn(f32) -> f32,
+    
+    pub w2: Matrix<MID2, MID1>,
+    pub b2: Vector<MID2>,
+    
+    pub n2: Vector<MID2>,
+    pub a2: Vector<MID2>,
+    pub s2: Vector<MID2>,
+    
+    pub f2: fn(f32) -> f32,
+    pub df2: fn(f32) -> f32,
+    
+    pub w3: Matrix<OUT, MID2>,
+    pub b3: Vector<OUT>,
+    
+    pub n3: Vector<OUT>,
+    pub a3: Vector<OUT>,
+    pub s3: Vector<OUT>,
+    
+    pub f3: fn(f32) -> f32,
+    pub df3: fn(f32) -> f32,
+    
+    pub curr_input: Vector<IN>,
+    pub curr_output: Vector<OUT>,
+    pub curr_target: Vector<OUT>,
+    pub curr_errors: Vector<OUT>,
+    
+    pub curr_loss: f32,
+}
+
+impl<
+    const IN: usize,
+    const MID1: usize,
+    const MID2: usize,
+    const OUT: usize,
+> ManualModel<IN, MID1, MID2, OUT>
+    where
+        [(); MID1*IN]: Sized,
+        [(); MID2*MID1]: Sized,
+        [(); OUT*MID2]: Sized,
+{
     #[allow(dead_code)]
-    pub fn one_hot(n: usize) -> Vector<N> {
-        let mut arr = [0f32; N];
-        arr[n] = 1f32;
-        Self(arr)
+    pub fn forward(&mut self, input: &Vector<IN>, target: &Vector<OUT>) {
+        self.curr_input = input.clone();
+        self.curr_target = target.clone();
+
+        self.n1 = &(&self.w1 * &self.curr_input) + &self.b1;
+        self.a1 = self.n1.map(self.f1);
+
+        self.n2 = &(&self.w2 * &self.a1) + &self.b2;
+        self.a2 = self.n2.map(self.f2);
+
+        self.n3 = &(&self.w3 * &self.a2) + &self.b3;
+        self.a3 = self.n3.map(self.f3);
+
+        self.curr_output = self.a3.clone();
+        self.curr_errors = &self.curr_target - &self.curr_output;
+        self.curr_loss = self.curr_errors.sum_of_squares();
     }
 
     #[allow(dead_code)]
-    pub fn from_arr(arr: [f32; N]) -> Vector<N> {
-        Vector(arr)
+    pub fn forward_dummy_n1(&mut self) {
+        self.a1 = self.n1.map(self.f1);
+
+        self.n2 = &(&self.w2 * &self.a1) + &self.b2;
+        self.a2 = self.n2.map(self.f2);
+
+        self.n3 = &(&self.w3 * &self.a2) + &self.b3;
+        self.a3 = self.n3.map(self.f3);
+
+        self.curr_output = self.a3.clone();
+        self.curr_errors = &self.curr_target - &self.curr_output;
+        self.curr_loss = self.curr_errors.sum_of_squares();
     }
 
     #[allow(dead_code)]
-    pub fn from_fun(f: impl Fn() -> f32) -> Vector<N> {
-        let mut arr = [0f32; N];
-        for i in 0..N {
-            arr[i] = f();
-        }
-        Self(arr)
+    pub fn forward_dummy_n2(&mut self) {
+        self.a2 = self.n2.map(self.f2);
+
+        self.n3 = &(&self.w3 * &self.a2) + &self.b3;
+        self.a3 = self.n3.map(self.f3);
+
+        self.curr_output = self.a3.clone();
+        self.curr_errors = &self.curr_target - &self.curr_output;
+        self.curr_loss = self.curr_errors.sum_of_squares();
     }
 
-    pub fn dot(&self, other: &Vector<N>) -> f32 {
-        let mut product = 0f32;
-        for i in 0..N {
-            product += self.0[i] * other.0[i];
-        }
-        product
-    }
-}
+    #[allow(dead_code)]
+    pub fn forward_dummy_n3(&mut self) {
+        self.a3 = self.n3.map(self.f3);
 
-impl<const N: usize> Add for &Vector<N> {
-    type Output = Vector<N>;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        let mut arr = [0f32; N];
-        self.0.iter()
-            .zip(rhs.0.iter())
-            .map(|(n, m)| n + m)
-            .enumerate()
-            .for_each(|(i, x)| arr[i] = x);
-        Vector(arr)
-    }
-}
-
-impl<const N: usize> Add<&Vector<N>> for f32 {
-    type Output = Vector<N>;
-
-    fn add(self, rhs: &Vector<N>) -> Self::Output {
-        let mut arr = [0f32; N];
-        rhs.0.iter()
-           .enumerate()
-           .for_each(|(i, x)| arr[i] = x + self);
-        Vector(arr)
-    }
-}
-
-impl<const N: usize> Add<f32> for &Vector<N> {
-    type Output = Vector<N>;
-
-    fn add(self, rhs: f32) -> Self::Output {
-        let mut arr = [0f32; N];
-        self.0.iter()
-            .enumerate()
-            .for_each(|(i, x)| arr[i] = x + rhs);
-        Vector(arr)
-    }
-}
-
-impl<const N: usize> Mul for &Vector<N> {
-    type Output = f32;
-
-    fn mul(self, rhs: Self) -> Self::Output {
-        self.dot(rhs)
-    }
-}
-
-impl<const N: usize> Mul<&Vector<N>> for f32 {
-    type Output = Vector<N>;
-
-    fn mul(self, rhs: &Vector<N>) -> Self::Output {
-        let mut arr = [0f32; N];
-        rhs.0.iter()
-           .enumerate()
-           .for_each(|(i, x)| arr[i] = x * self);
-        Vector(arr)
-    }
-}
-
-impl<const N: usize> Mul<f32> for &Vector<N> {
-    type Output = Vector<N>;
-
-    fn mul(self, rhs: f32) -> Self::Output {
-        let mut arr = [0f32; N];
-        self.0.iter()
-            .enumerate()
-            .for_each(|(i, x)| arr[i] = x * rhs);
-        Vector(arr)
-    }
-}
-
-impl<const N: usize> Neg for &Vector<N> {
-    type Output = Vector<N>;
-
-    fn neg(self) -> Self::Output {
-        Vector(self.0.map(|x| -x))
-    }
-}
-
-impl<const N: usize> Display for Vector<N> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // include superscript T to indicate that it's a column vector
-        write!(f, "[{}]\u{1D40}", self.0.map(|n| n.to_string()).join(","))
-    }
-}
-
-impl<const N: usize> From<[f32; N]> for Vector<N> {
-    fn from(arr: [f32; N]) -> Self {
-        Vector(arr)
-    }
-}
-
-impl<const N: usize> Index<usize> for Vector<N> {
-    type Output = f32;
-
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.0[index]
-    }
-}
-
-impl<const N: usize> IndexMut<usize> for Vector<N> {
-    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.0[index]
-    }
-}
-
-impl<const N: usize> PartialEq for Vector<N> {
-    fn eq(&self, other: &Self) -> bool {
-        self.0.eq(&other.0)
-    }
-}
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn transpose_twice() {
-        let m = Matrix::from_cols(&[
-            [1., 2., 3., 4.],
-            [5., 6., 7., 8.],
-            [9., 10., 11., 12.],
-        ]);
-        let mt = m.T();
-        let mtt = mt.T();
-        assert_eq!(m, mtt);
+        self.curr_output = self.a3.clone();
+        self.curr_errors = &self.curr_target - &self.curr_output;
+        self.curr_loss = self.curr_errors.sum_of_squares();
     }
 
-    #[test]
-    fn matrix_add_multiply_scalar() {
-        let m = Matrix::<3, 3>::I();
-        let m2 = 3f32 + &(2f32 * &(&(&m + 1f32) * 5f32));
-        let expected = Matrix::from_cols(&[
-            [23., 13., 13.],
-            [13., 23., 13.],
-            [13., 13., 23.],
-        ]);
-        assert_eq!(m2, expected);
-    }
+    #[allow(dead_code)]
+    pub fn backward(&mut self)
+    where
+        [(); MID1*IN]: Sized,
+        [(); MID2*MID2]: Sized,
+        [(); MID1*MID2]: Sized,
+        [(); MID1*MID1]: Sized,
+        [(); OUT*MID2]: Sized,
+        [(); OUT*OUT]: Sized,
+        [(); MID2*OUT]: Sized,
+    {
+        let x = (-2f32 * &self.n3.map(self.df3)).into();
+        let y = Matrix::diag(&x);
+        self.s3 = &y * &self.curr_errors;
 
-    #[test]
-    fn matrix_multiplication() {
-        let m1 = Matrix::from_cols(&[
-            [1., 2.],
-            [3., 4.],
-            [5., 6.],
-        ]);
-        let m2 = Matrix::from_cols(&[
-            [1., 2., 3.],
-            [4., 5., 6.],
-        ]);
-        let expected = Matrix::from_cols(&[
-            [22., 28.],
-            [49., 64.],
-        ]);
-        assert_eq!(&m1 * &m2, expected);
-    }
+        let x = self.n2.map(self.df2).into();
+        let y = Matrix::diag(&x);
+        self.s2 = &y * &(&self.w3.T() * &self.s3);
 
-    #[test]
-    fn matrix_vector_multiplication() {
-        let m = Matrix::from_cols(&[
-            [1., 2.],
-            [3., 4.],
-            [5., 6.],
-        ]);
-        let v = Vector::from_arr([1., 0., 2.]);
-        let expected = Vector::from_arr([11., 14.]);
-        assert_eq!(&m * &v, expected);
-    }
-
-    #[test]
-    fn vector_indexing() {
-        let v = &Vector::<5>::zero() + 5f32;
-        for i in 0..5 {
-            assert_eq!(v[i], 5.0);
-        }
-    }
-
-    #[test]
-    fn vector_mut_indexing() {
-        let mut v = Vector::<5>::zero();
-        for i in 0..5 {
-            v[i] = 5. - i as f32;
-        }
-        for i in 0..5 {
-            assert_eq!(v[i], 5. - i as f32);
-        }
+        let x = self.n1.map(self.df1).into();
+        let y = Matrix::diag(&x);
+        self.s1 = &y * &(&self.w2.T() * &self.s2);
     }
 }
