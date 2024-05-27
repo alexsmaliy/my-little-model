@@ -1,4 +1,5 @@
 use crate::linalg::{Matrix, Vector};
+use crate::model::weights::Weights;
 use super::ModelLayer;
 
 #[allow(dead_code)]
@@ -15,16 +16,34 @@ pub struct FullyConnectedLayer<const IN: usize, const OUT: usize>
     pub df: fn(f32) -> f32,
 }
 
+impl<const IN: usize, const OUT: usize> FullyConnectedLayer<IN, OUT>
+    where
+        [(); IN*OUT]: Sized,
+        [(); OUT*IN]: Sized,
+        [(); OUT*OUT]: Sized,
+{
+    pub fn new(weights: Weights<IN, OUT>, f: fn(f32) -> f32, df: fn(f32) -> f32) -> Self {
+        FullyConnectedLayer {
+            W: weights.into(),
+            b: Vector::zero(), // TODO
+            n: Vector::zero(),
+            a: Vector::zero(),
+            s: Vector::zero(),
+            Wᵀs: Vector::zero(),
+            f,
+            df,
+        }
+    }
+}
+
 impl<const IN: usize, const OUT: usize> ModelLayer<IN, OUT> for FullyConnectedLayer<IN, OUT>
     where
         [(); IN*OUT]: Sized,
         [(); OUT*IN]: Sized,
         [(); OUT*OUT]: Sized,
-        [(); 1*IN]: Sized,
-        [(); IN*1]: Sized,
 {
-    fn forward(&mut self, input_src: &Vector<IN>) {
-        self.n = &(&self.W * input_src) + &self.b;
+    fn forward(&mut self, prev_output: &Vector<IN>) {
+        self.n = &(&self.W * prev_output) + &self.b;
         self.a = self.n.map(self.f);
     }
 

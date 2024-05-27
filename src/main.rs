@@ -3,6 +3,7 @@
 #![feature(generic_const_exprs)]
 
 use linalg::{Matrix, Vector};
+use model::weights::Weights;
 use model::Model;
 use model::layer::connected::FullyConnectedLayer;
 
@@ -10,37 +11,54 @@ mod linalg;
 mod model;
 
 fn main() {
+    let (lo, hi) = (-1f32/f32::sqrt(6.), 1f32/f32::sqrt(6.));
+
     let chain = (
-        FullyConnectedLayer {
-            W: Matrix::from_cols(&[[0.05, 0.1, 0.2], [0.04, 0.1, 0.22], [0.71, 0.03, 0.23]]),
-            b: Vector::from_arr([0.12, 0.23, 0.45]),
-            n: Vector::zero(),
-            a: Vector::zero(),
-            s: Vector::zero(),
-            Wᵀs: Vector::zero(),
-            f: |x: f32| if x > 0f32 { x } else { 0.2 * x },
-            df: |x: f32| if x > 0f32 { 1f32 } else { 0.2 },
-        },
-        FullyConnectedLayer {
-            W: Matrix::from_cols(&[[0.15, 0.12, 0.21], [0.4, 0.01, 0.42], [0.75, 0.3, 0.3]]),
-            b: Vector::from_arr([0.1, 0.3, 0.5]),
-            n: Vector::zero(),
-            a: Vector::zero(),
-            s: Vector::zero(),
-            Wᵀs: Vector::zero(),
-            f: |x: f32| if x > 0f32 { 0.8 * x } else { 0.1 * x },
-            df: |x: f32| if x > 0f32 { 0.8 } else { 0.1 },
-        },
-        FullyConnectedLayer {
-            W: Matrix::from_cols(&[[0.715, 0.172, 0.271], [0.47, 0.07, 0.72], [0.5, 0.37, 0.73]]),
-            b: Vector::from_arr([0.17, 0.37, 0.75]),
-            n: Vector::zero(),
-            a: Vector::zero(),
-            s: Vector::zero(),
-            Wᵀs: Vector::zero(),
-            f: |x: f32| if x > 0f32 { 0.9 * x } else { 0.15 * x },
-            df: |x: f32| if x > 0f32 { 0.9 } else { 0.15 },
-        }
+        FullyConnectedLayer::new(
+            Weights::<3, 500>::uniformly_random(lo, hi),
+            |x: f32| if x > 0f32 { x } else { 0.2 * x },
+            |x: f32| if x > 0f32 { 1f32 } else { 0.2 },
+        ),
+        // FullyConnectedLayer {
+        //     W: Matrix::from_cols(&[[0.05, 0.1, 0.2], [0.04, 0.1, 0.22], [0.71, 0.03, 0.23]]),
+        //     b: Vector::from_arr([0.12, 0.23, 0.45]),
+        //     n: Vector::zero(),
+        //     a: Vector::zero(),
+        //     s: Vector::zero(),
+        //     Wᵀs: Vector::zero(),
+        //     f: |x: f32| if x > 0f32 { x } else { 0.2 * x },
+        //     df: |x: f32| if x > 0f32 { 1f32 } else { 0.2 },
+        // },
+        FullyConnectedLayer::new(
+            Weights::<500, 500>::uniformly_random(lo, hi),
+            |x: f32| if x > 0f32 { 0.8 * x } else { 0.1 * x },
+            |x: f32| if x > 0f32 { 0.8 } else { 0.1 },
+        ),
+        // FullyConnectedLayer {
+        //     W: Matrix::from_cols(&[[0.15, 0.12, 0.21], [0.4, 0.01, 0.42], [0.75, 0.3, 0.3]]),
+        //     b: Vector::from_arr([0.1, 0.3, 0.5]),
+        //     n: Vector::zero(),
+        //     a: Vector::zero(),
+        //     s: Vector::zero(),
+        //     Wᵀs: Vector::zero(),
+        //     f: |x: f32| if x > 0f32 { 0.8 * x } else { 0.1 * x },
+        //     df: |x: f32| if x > 0f32 { 0.8 } else { 0.1 },
+        // },
+        FullyConnectedLayer::new(
+            Weights::<500, 3>::uniformly_random(lo, hi),
+            |x: f32| if x > 0f32 { 0.9 * x } else { 0.15 * x },
+            |x: f32| if x > 0f32 { 0.9 } else { 0.15 },
+        ),
+        // FullyConnectedLayer {
+        //     W: Matrix::from_cols(&[[0.715, 0.172, 0.271], [0.47, 0.07, 0.72], [0.5, 0.37, 0.73]]),
+        //     b: Vector::from_arr([0.17, 0.37, 0.75]),
+        //     n: Vector::zero(),
+        //     a: Vector::zero(),
+        //     s: Vector::zero(),
+        //     Wᵀs: Vector::zero(),
+        //     f: |x: f32| if x > 0f32 { 0.9 * x } else { 0.15 * x },
+        //     df: |x: f32| if x > 0f32 { 0.9 } else { 0.15 },
+        // }
     );
 
     let mut model = model::manual::ManualModel {
