@@ -4,10 +4,11 @@
 
 use linalg::{Matrix, Vector};
 use model::Model;
-use model::layer::connected::FullyConnectedLayer;
+use layer::connected::FullyConnectedLayer;
 use model::transfer_function::LeakyReLU;
 use model::weights::{Biases, Weights};
 
+mod layer;
 mod linalg;
 mod model;
 
