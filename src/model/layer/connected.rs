@@ -1,6 +1,6 @@
 use crate::linalg::{Matrix, Vector};
 use crate::model::transfer_function::TransferFunction;
-use crate::model::weights::Weights;
+use crate::model::weights::{Biases, Weights};
 use super::ModelLayer;
 
 #[allow(dead_code)]
@@ -24,10 +24,10 @@ impl<const IN: usize, const OUT: usize, F: TransferFunction> FullyConnectedLayer
         [(); OUT*IN]: Sized,
         [(); OUT*OUT]: Sized,
 {
-    pub fn new(weights: Weights<IN, OUT>, f: F) -> Self {
+    pub fn new(weights: Weights<IN, OUT>, biases: Biases<OUT>, f: F) -> Self {
         FullyConnectedLayer {
             W: weights.into(),
-            b: Vector::zero(), // TODO
+            b: biases.into(),
             n: Vector::zero(),
             a: Vector::zero(),
             s: Vector::zero(),
