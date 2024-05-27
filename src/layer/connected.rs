@@ -13,8 +13,6 @@ pub struct FullyConnectedLayer<const IN: usize, const OUT: usize, F: TransferFun
     pub a: Vector<OUT>,     // net nonlinear outputs
     pub s: Vector<OUT>,     // dL/dn of this layer
     pub Wᵀs: Vector<IN>,    // weighted dL/dn for backwards pass
-    // pub f: fn(f32) -> f32,
-    // pub df: fn(f32) -> f32,
     pub f: F,
 }
 

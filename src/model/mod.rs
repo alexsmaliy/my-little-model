@@ -1,4 +1,3 @@
-pub mod layer;
 pub mod manual;
 pub mod transfer_function;
 pub mod weights;
@@ -6,12 +5,12 @@ pub mod weights;
 use std::marker::PhantomData;
 
 use crate::linalg::Vector;
-use self::layer::ModelLayerChain;
+use crate::layer::ModelLayerChain;
 
 pub struct ModelOutput<const DIM: usize> {
-    loss: f32,
-    errors: Vector<DIM>,
-    output: Vector<DIM>,
+    pub loss: f32,
+    pub errors: Vector<DIM>,
+    pub output: Vector<DIM>,
 }
 
 pub struct Model<const IN: usize, const OUT: usize, T, L: ModelLayerChain<IN, OUT, T>> {
@@ -21,7 +20,7 @@ pub struct Model<const IN: usize, const OUT: usize, T, L: ModelLayerChain<IN, OU
     pub errors: Vector<OUT>,
     pub loss: f32,
 
-    _ph: PhantomData<T>,
+    _ph: PhantomData<T>, // dummy field denoting hard-to-inscribe type T
 }
 
 impl<const IN: usize, const OUT: usize, T, L: ModelLayerChain<IN, OUT, T>> Model<IN, OUT, T, L> {

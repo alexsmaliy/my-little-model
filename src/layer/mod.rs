@@ -1,5 +1,5 @@
 use crate::linalg::{Matrix, Vector};
-use super::ModelOutput;
+use crate::model::ModelOutput;
 
 pub mod connected;
 
