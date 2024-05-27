@@ -1,9 +1,10 @@
 use crate::linalg::{Matrix, Vector};
+use crate::model::transfer_function::TransferFunction;
 use crate::model::weights::Weights;
 use super::ModelLayer;
 
 #[allow(dead_code)]
-pub struct FullyConnectedLayer<const IN: usize, const OUT: usize>
+pub struct FullyConnectedLayer<const IN: usize, const OUT: usize, F: TransferFunction>
     where [(); OUT*IN]: Sized
 {
     pub W: Matrix<OUT, IN>, // weights
@@ -12,17 +13,18 @@ pub struct FullyConnectedLayer<const IN: usize, const OUT: usize>
     pub a: Vector<OUT>,     // net nonlinear outputs
     pub s: Vector<OUT>,     // dL/dn of this layer
     pub Wᵀs: Vector<IN>,    // weighted dL/dn for backwards pass
-    pub f: fn(f32) -> f32,
-    pub df: fn(f32) -> f32,
+    // pub f: fn(f32) -> f32,
+    // pub df: fn(f32) -> f32,
+    pub f: F,
 }
 
-impl<const IN: usize, const OUT: usize> FullyConnectedLayer<IN, OUT>
+impl<const IN: usize, const OUT: usize, F: TransferFunction> FullyConnectedLayer<IN, OUT, F>
     where
         [(); IN*OUT]: Sized,
         [(); OUT*IN]: Sized,
         [(); OUT*OUT]: Sized,
 {
-    pub fn new(weights: Weights<IN, OUT>, f: fn(f32) -> f32, df: fn(f32) -> f32) -> Self {
+    pub fn new(weights: Weights<IN, OUT>, f: F) -> Self {
         FullyConnectedLayer {
             W: weights.into(),
             b: Vector::zero(), // TODO
@@ -31,12 +33,11 @@ impl<const IN: usize, const OUT: usize> FullyConnectedLayer<IN, OUT>
             s: Vector::zero(),
             Wᵀs: Vector::zero(),
             f,
-            df,
         }
     }
 }
 
-impl<const IN: usize, const OUT: usize> ModelLayer<IN, OUT> for FullyConnectedLayer<IN, OUT>
+impl<const IN: usize, const OUT: usize, F: TransferFunction> ModelLayer<IN, OUT> for FullyConnectedLayer<IN, OUT, F>
     where
         [(); IN*OUT]: Sized,
         [(); OUT*IN]: Sized,
@@ -44,7 +45,7 @@ impl<const IN: usize, const OUT: usize> ModelLayer<IN, OUT> for FullyConnectedLa
 {
     fn forward(&mut self, prev_output: &Vector<IN>) {
         self.n = &(&self.W * prev_output) + &self.b;
-        self.a = self.n.map(self.f);
+        self.a = self.n.map(self.f.get_f());
     }
 
     fn backward(&mut self, upstream_Wᵀs: &Vector<OUT>) {
@@ -56,7 +57,7 @@ impl<const IN: usize, const OUT: usize> ModelLayer<IN, OUT> for FullyConnectedLa
         let y = Matrix::diag(&x);
         self.s1 = &y * &(&self.w2.T() * &self.s2);
          */
-        let x = self.n.map(self.df).into();
+        let x = self.n.map(self.f.get_df()).into();
         let y = Matrix::diag(&x);
         self.s = &y * upstream_Wᵀs;
         self.Wᵀs = &self.W.T() * &self.s;
@@ -75,12 +76,12 @@ impl<const IN: usize, const OUT: usize> ModelLayer<IN, OUT> for FullyConnectedLa
         &self.n
     }
 
-    fn f(&self) -> fn(f32) -> f32 {
-        self.f
+    fn f(&self) -> Box<dyn Fn(f32) -> f32 + 'static> {
+        Box::new(self.f.get_f())
     }
 
-    fn df(&self) -> fn(f32) -> f32 {
-        self.df
+    fn df(&self) -> Box<dyn Fn(f32) -> f32 + 'static> {
+        Box::new(self.f.get_df())
     }
 
     fn set_sensitivities(&mut self, s: Vector<OUT>) {

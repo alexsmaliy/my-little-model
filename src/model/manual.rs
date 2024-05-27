@@ -1,6 +1,6 @@
 use crate::linalg::{Matrix, Vector};
 
-pub struct ManualModel<const IN: usize, const MID1: usize, const MID2: usize, const OUT: usize>
+pub struct ManualModelDoNotUse<const IN: usize, const MID1: usize, const MID2: usize, const OUT: usize>
     where [(); MID1*IN]: Sized, [(); MID2*MID1]: Sized, [(); OUT*MID2]: Sized
 {
     pub w1: Matrix<MID1, IN>,
@@ -46,7 +46,7 @@ impl<
     const MID1: usize,
     const MID2: usize,
     const OUT: usize,
-> ManualModel<IN, MID1, MID2, OUT>
+> ManualModelDoNotUse<IN, MID1, MID2, OUT>
     where
         [(); MID1*IN]: Sized,
         [(); MID2*MID1]: Sized,

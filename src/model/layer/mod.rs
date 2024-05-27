@@ -14,8 +14,8 @@ pub trait ModelLayer<const IN: usize, const OUT: usize>
     fn update_weights(&mut self, learning_rate: f32, a_prev: &Vector<IN>);
     fn nonlinear_output(&self) -> &Vector<OUT>;
     fn linear_output(&self) -> &Vector<OUT>;
-    fn f(&self) -> fn(f32) -> f32;
-    fn df(&self) -> fn(f32) -> f32;
+    fn f(&self) -> Box<dyn Fn(f32) -> f32>;
+    fn df(&self) -> Box<dyn Fn(f32) -> f32>;
     fn set_sensitivities(&mut self, s: Vector<OUT>);
     fn sensitivities(&self) -> &Vector<IN>;
 }

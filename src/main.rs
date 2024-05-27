@@ -3,9 +3,10 @@
 #![feature(generic_const_exprs)]
 
 use linalg::{Matrix, Vector};
-use model::weights::Weights;
 use model::Model;
 use model::layer::connected::FullyConnectedLayer;
+use model::transfer_function::LeakyReLU;
+use model::weights::Weights;
 
 mod linalg;
 mod model;
@@ -15,9 +16,8 @@ fn main() {
 
     let chain = (
         FullyConnectedLayer::new(
-            Weights::<3, 500>::uniformly_random(lo, hi),
-            |x: f32| if x > 0f32 { x } else { 0.2 * x },
-            |x: f32| if x > 0f32 { 1f32 } else { 0.2 },
+            Weights::<3, 300>::uniformly_random(lo, hi),
+            LeakyReLU { slope_lt0: 0.2, slope_gte0: 1.0 },
         ),
         // FullyConnectedLayer {
         //     W: Matrix::from_cols(&[[0.05, 0.1, 0.2], [0.04, 0.1, 0.22], [0.71, 0.03, 0.23]]),
@@ -30,9 +30,8 @@ fn main() {
         //     df: |x: f32| if x > 0f32 { 1f32 } else { 0.2 },
         // },
         FullyConnectedLayer::new(
-            Weights::<500, 500>::uniformly_random(lo, hi),
-            |x: f32| if x > 0f32 { 0.8 * x } else { 0.1 * x },
-            |x: f32| if x > 0f32 { 0.8 } else { 0.1 },
+            Weights::<300, 300>::uniformly_random(lo, hi),
+            LeakyReLU { slope_lt0: 0.1, slope_gte0: 0.8 },
         ),
         // FullyConnectedLayer {
         //     W: Matrix::from_cols(&[[0.15, 0.12, 0.21], [0.4, 0.01, 0.42], [0.75, 0.3, 0.3]]),
@@ -45,9 +44,8 @@ fn main() {
         //     df: |x: f32| if x > 0f32 { 0.8 } else { 0.1 },
         // },
         FullyConnectedLayer::new(
-            Weights::<500, 3>::uniformly_random(lo, hi),
-            |x: f32| if x > 0f32 { 0.9 * x } else { 0.15 * x },
-            |x: f32| if x > 0f32 { 0.9 } else { 0.15 },
+            Weights::<300, 3>::uniformly_random(lo, hi),
+            LeakyReLU { slope_lt0: 0.15, slope_gte0: 0.9 },
         ),
         // FullyConnectedLayer {
         //     W: Matrix::from_cols(&[[0.715, 0.172, 0.271], [0.47, 0.07, 0.72], [0.5, 0.37, 0.73]]),
@@ -61,7 +59,7 @@ fn main() {
         // }
     );
 
-    let mut model = model::manual::ManualModel {
+    let mut model = model::manual::ManualModelDoNotUse {
         w1: Matrix::from_cols(&[[0.05, 0.1, 0.2], [0.04, 0.1, 0.22], [0.71, 0.03, 0.23]]),
         b1: Vector::from_arr([0.12, 0.23, 0.45]),
         
