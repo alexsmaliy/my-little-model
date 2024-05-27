@@ -5,7 +5,7 @@
 use linalg::{Matrix, Vector};
 use model::Model;
 use layer::connected::FullyConnectedLayer;
-use model::transfer_function::LeakyReLU;
+use model::activation::LeakyReLU;
 use model::weights::{Biases, Weights};
 
 mod layer;
@@ -17,8 +17,8 @@ fn main() {
 
     let chain = (
         FullyConnectedLayer::new(
-            Weights::<3, 4>::uniformly_random(lo, hi),
-            Biases::uniformly_random(lo, hi),
+            Weights::<3, 4>::default(),
+            Biases::default(),
             LeakyReLU { slope_lt0: 0.2, slope_gte0: 1.0 },
         ),
         // FullyConnectedLayer {
@@ -32,8 +32,8 @@ fn main() {
         //     df: |x: f32| if x > 0f32 { 1f32 } else { 0.2 },
         // },
         FullyConnectedLayer::new(
-            Weights::<4, 4>::uniformly_random(lo, hi),
-            Biases::uniformly_random(lo, hi),
+            Weights::<4, 4>::default(),
+            Biases::default(),
             LeakyReLU { slope_lt0: 0.1, slope_gte0: 0.8 },
         ),
         // FullyConnectedLayer {
@@ -47,8 +47,8 @@ fn main() {
         //     df: |x: f32| if x > 0f32 { 0.8 } else { 0.1 },
         // },
         FullyConnectedLayer::new(
-            Weights::<4, 3>::uniformly_random(lo, hi),
-            Biases::uniformly_random(lo, hi),
+            Weights::<4, 3>::default(),
+            Biases::default(),
             LeakyReLU { slope_lt0: 0.15, slope_gte0: 0.9 },
         ),
         // FullyConnectedLayer {

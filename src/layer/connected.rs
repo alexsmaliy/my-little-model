@@ -1,10 +1,10 @@
 use crate::linalg::{Matrix, Vector};
-use crate::model::transfer_function::TransferFunction;
+use crate::model::activation::ActivationFunction;
 use crate::model::weights::{Biases, Weights};
 use super::ModelLayer;
 
 #[allow(dead_code)]
-pub struct FullyConnectedLayer<const IN: usize, const OUT: usize, F: TransferFunction>
+pub struct FullyConnectedLayer<const IN: usize, const OUT: usize, F: ActivationFunction>
     where [(); OUT*IN]: Sized
 {
     pub W: Matrix<OUT, IN>, // weights
@@ -16,7 +16,7 @@ pub struct FullyConnectedLayer<const IN: usize, const OUT: usize, F: TransferFun
     pub f: F,
 }
 
-impl<const IN: usize, const OUT: usize, F: TransferFunction> FullyConnectedLayer<IN, OUT, F>
+impl<const IN: usize, const OUT: usize, F: ActivationFunction> FullyConnectedLayer<IN, OUT, F>
     where
         [(); IN*OUT]: Sized,
         [(); OUT*IN]: Sized,
@@ -35,7 +35,7 @@ impl<const IN: usize, const OUT: usize, F: TransferFunction> FullyConnectedLayer
     }
 }
 
-impl<const IN: usize, const OUT: usize, F: TransferFunction> ModelLayer<IN, OUT> for FullyConnectedLayer<IN, OUT, F>
+impl<const IN: usize, const OUT: usize, F: ActivationFunction> ModelLayer<IN, OUT> for FullyConnectedLayer<IN, OUT, F>
     where
         [(); IN*OUT]: Sized,
         [(); OUT*IN]: Sized,
