@@ -3,6 +3,7 @@
 #![feature(generic_const_exprs)]
 
 use linalg::{Matrix, Vector};
+use model::loss::MSELoss;
 use model::Model;
 use layer::connected::FullyConnectedLayer;
 use model::activation::LeakyReLU;
@@ -93,7 +94,7 @@ fn main() {
     let input = Vector::from_arr([1., 2., 3.]);
     let target = Vector::from_arr([1., 2., 3.]);
 
-    let mut model = Model::new(chain);
+    let mut model = Model::new(chain, MSELoss);
     // println!("{}\t{}", model.layers.0.W, model.layers.0.b);
     // println!("{}\t{}", model.layers.1.W, model.layers.1.b);
     // println!("{}\t{}", model.layers.2.W, model.layers.2.b);
