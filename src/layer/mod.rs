@@ -14,8 +14,8 @@ pub trait ModelLayer<const IN: usize, const OUT: usize>
     fn update_weights(&mut self, learning_rate: f32, a_prev: &Vector<IN>);
     fn nonlinear_output(&self) -> &Vector<OUT>;
     fn linear_output(&self) -> &Vector<OUT>;
-    fn f(&self) -> Box<dyn Fn(f32) -> f32>;
-    fn df(&self) -> Box<dyn Fn(f32) -> f32>;
+    fn f(&self) -> Box<dyn Fn(f32) -> f32 + 'static>;
+    fn df(&self) -> Box<dyn Fn(f32) -> f32 + 'static>;
     fn set_sensitivities(&mut self, s: Vector<OUT>);
     fn sensitivities(&self) -> &Vector<IN>;
 }
@@ -56,12 +56,19 @@ impl<
         self.1.forward(self.0.nonlinear_output());
         self.2.forward(self.1.nonlinear_output());
 
-        let (n_last, df_last) = (self.2.linear_output(), self.2.df());
-        let tmp = (-2f32 * &n_last.map(df_last)).into();
-        let tmp = Matrix::diag(&tmp);
-        let errors = target - self.2.nonlinear_output();
-        let s_last = &tmp * &errors;
+        let last_layer = &self.2;
+        let model_output = last_layer.nonlinear_output();
+        let errors = target - model_output;
         let loss = errors.sum_of_squares();
+
+        let (n_last, df_last) = (self.2.linear_output(), self.2.df());
+
+        // This doesn't depend on choice of L.
+        let da_dn = Matrix::diag(&n_last.map(df_last).into());
+        // This depends on choice of L.
+        let dL_da = -2f32 * &errors;
+
+        let s_last = &da_dn * &dL_da;
 
         self.2.set_sensitivities(s_last);
         self.1.backward(self.2.sensitivities());
