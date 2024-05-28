@@ -1,5 +1,6 @@
-pub mod manual;
 pub mod activation;
+pub mod loss;
+pub mod manual;
 pub mod weights;
 
 use std::marker::PhantomData;
