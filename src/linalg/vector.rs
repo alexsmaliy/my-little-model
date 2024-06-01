@@ -47,6 +47,10 @@ impl<const N: usize> Vector<N> {
         Self(self.0.clone().map(f))
     }
 
+    pub fn sum(&self) -> f32 {
+        self.0.iter().sum()
+    }
+
     /**
         Squared 2-norm.
      */
