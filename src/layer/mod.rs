@@ -1,4 +1,5 @@
 use crate::linalg::{Matrix, Vector};
+use crate::model::loss::LossFunction;
 use crate::model::ModelOutput;
 
 pub mod connected;
@@ -21,7 +22,11 @@ pub trait ModelLayer<const IN: usize, const OUT: usize>
 }
 
 pub trait ModelLayerChain<const IN: usize, const OUT: usize, T> {
-    fn run_once(&mut self, input: &Vector<IN>, target: &Vector<OUT>) -> ModelOutput<OUT>;
+    fn run_once<L: LossFunction>(
+        &mut self,
+        input_pair: (&Vector<IN>, &Vector<OUT>),
+        loss_function: L,
+    ) -> ModelOutput<OUT>;
 }
 
 impl<
@@ -49,24 +54,33 @@ impl<
     [(); D*C]: Sized,
     [(); D*D]: Sized,
 {
-    fn run_once(&mut self, item: &Vector<A>, target: &Vector<D>) -> ModelOutput<D> {
+    fn run_once<LF: LossFunction>(
+        &mut self,
+        input_pair: (&Vector<A>, &Vector<D>),
+        loss_function: LF,
+    ) -> ModelOutput<D> {
         let learning_rate: f32 = 0.001; // TODO
+        let (item, target) = input_pair;
 
         self.0.forward(item);
         self.1.forward(self.0.nonlinear_output());
         self.2.forward(self.1.nonlinear_output());
 
         let last_layer = &self.2;
-        let model_output = last_layer.nonlinear_output();
-        let errors = target - model_output;
-        let loss = errors.sum_of_squares();
+        let model_output = last_layer.nonlinear_output().clone();
+
+        let (L, dL_da) = (loss_function.get_L(), loss_function.get_dL_da());
+        let (loss, errors) = L(target, &model_output);
+        // let errors = target - model_output;
+        // let loss = errors.sum_of_squares();
 
         let (n_last, df_last) = (self.2.linear_output(), self.2.df());
 
         // This doesn't depend on choice of L.
         let da_dn = Matrix::diag(&n_last.map(df_last).into());
         // This depends on choice of L.
-        let dL_da = -2f32 * &errors;
+        let dL_da = dL_da(target, &model_output);
+        // let dL_da = -2f32 * &errors;
 
         let s_last = &da_dn * &dL_da;
 
@@ -81,7 +95,7 @@ impl<
         return ModelOutput {
             loss,
             errors,
-            output: self.2.nonlinear_output().clone()
+            output: model_output,
         }
     }
 }
