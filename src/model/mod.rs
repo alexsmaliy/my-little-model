@@ -40,7 +40,11 @@ impl<const IN: usize, const OUT: usize, T, L: ModelLayerChain<IN, OUT, T>, LF: L
     }
 
     pub fn run_once(&mut self, input: &Vector<IN>, target: &Vector<OUT>) {
-        let ModelOutput { loss, errors, output } = self.layers.run_once((input, target), self.loss_function);
+        let ModelOutput { loss, errors, output } = self.layers.run_once(
+            (input, target),
+            self.loss_function,
+            0.01,
+        );
         self.last_input = input.clone();
         self.last_output = output;
         self.loss = loss;

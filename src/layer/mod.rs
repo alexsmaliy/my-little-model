@@ -26,6 +26,7 @@ pub trait ModelLayerChain<const IN: usize, const OUT: usize, T> {
         &mut self,
         input_pair: (&Vector<IN>, &Vector<OUT>),
         loss_function: L,
+        learning_rate: f32,
     ) -> ModelOutput<OUT>;
 }
 
@@ -58,8 +59,8 @@ impl<
         &mut self,
         input_pair: (&Vector<A>, &Vector<D>),
         loss_function: LF,
+        learning_rate: f32,
     ) -> ModelOutput<D> {
-        let learning_rate: f32 = 0.001; // TODO
         let (item, target) = input_pair;
 
         self.0.forward(item);

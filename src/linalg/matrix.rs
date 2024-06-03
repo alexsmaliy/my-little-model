@@ -1,9 +1,194 @@
 use std::fmt::Display;
+use std::marker::PhantomData;
 use std::ops::{Add, Mul, Sub};
 
 use super::Vector;
 
-#[derive(Debug)]
+//////////////////
+
+pub enum MatrixWrapper<const R: usize, const C: usize> where [(); R*C]: Sized {
+    Constant(ConstantMatrix<R, C>),
+    Dense(DenseMatrix<R, C>),
+    Diagonal(DiagonalMatrix<R, C>),
+    Identity(IdentityMatrix<R, C>),
+    Sparse(SparseMatrix<R, C>),
+    Zero(ZeroMatrix<R, C>),
+}
+
+pub enum VectorWrapper<const D: usize> {
+    Constant(ConstantVector<D>),
+    Dense(DenseVector<D>),
+    OneHot(OneHotVector<D>),
+    Sparse(SparseVector<D>),
+    Zero(ZeroVector<D>),
+}
+
+impl<const R: usize, const C: usize> MatrixWrapper<R, C> where [(); R*C]: Sized {
+    pub fn constant(c: f32) -> Self {
+        Self::Constant(ConstantMatrix(c))
+    }
+
+    pub fn sparse() -> Self {
+        Self::Sparse(SparseMatrix(Vec::new(), Vec::new()))
+    }
+
+    pub fn zero() -> Self {
+        Self::Zero(ZeroMatrix(0f32))
+    }
+}
+
+impl<const D: usize> MatrixWrapper<D, D> where [(); D*D]: Sized {
+    pub fn diagonal(v: DenseVector<D>) -> Self {
+        Self::Diagonal(DiagonalMatrix(v))
+    }
+    
+    pub fn identity() -> Self {
+        Self::Identity(IdentityMatrix(0f32, 1f32))
+    }
+}
+
+impl<const D: usize> VectorWrapper<D> {
+    pub fn onehot(i: usize) -> Self {
+        Self::OneHot(OneHotVector(0f32, 1f32, i))
+    }
+
+    pub fn sparse() -> Self {
+        Self::Sparse(SparseVector(Vec::new(), Vec::new()))
+    }
+
+    pub fn zero() -> Self {
+        Self::Zero(ZeroVector(0f32))
+    }
+}
+
+impl<const R: usize, const C: usize> Mul<&VectorWrapper<C>> for &MatrixWrapper<R, C> where [(); R*C]: Sized {
+    type Output = VectorWrapper<R>;
+    
+    fn mul(self, rhs: &VectorWrapper<C>) -> Self::Output {
+        use MatrixWrapper as M;
+        use VectorWrapper as V;
+        match (self, rhs) {
+            (&M::Identity(ref m), &V::Constant(ref v)) => V::Constant(ConstantVector::<R>(0f32)),
+            (&M::Dense(ref m), &V::Constant(ref v)) => V::Constant(ConstantVector::<R>(0f32)),
+            (&M::Identity(ref m), &V::Dense(ref v)) => V::Constant(ConstantVector::<R>(0f32)),
+            (&M::Dense(ref m), &V::Dense(ref v)) => V::Constant(ConstantVector::<R>(0f32)),
+            _ => unimplemented!(),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ConstantMatrix<const R: usize, const C: usize>(f32);
+
+#[derive(Clone, Debug)]
+pub struct DenseMatrix<const R: usize, const C: usize>(pub(super) [f32; R*C]) where [(); R*C]: Sized;
+
+#[derive(Clone, Debug)]
+pub struct DiagonalMatrix<const R: usize, const C: usize>(DenseVector<R>) where [(); R*C]: Sized;
+
+#[derive(Clone, Debug)]
+pub struct IdentityMatrix<const R: usize, const C: usize>(f32, f32);
+
+#[derive(Clone, Debug)]
+pub struct SparseMatrix<const R: usize, const C: usize>(Vec<usize>, Vec<f32>);
+
+#[derive(Clone, Debug)]
+pub struct ZeroMatrix<const R: usize, const C: usize>(f32);
+
+#[derive(Clone, Debug)]
+pub struct ConstantVector<const D: usize>(f32);
+
+#[derive(Clone, Debug)]
+pub struct DenseVector<const D: usize>(pub(super) [f32; D]);
+
+#[derive(Clone, Debug)]
+pub struct OneHotVector<const D: usize>(f32, f32, usize);
+
+#[derive(Clone, Debug)]
+pub struct SparseVector<const D: usize>(Vec<usize>, Vec<f32>);
+
+#[derive(Clone, Debug)]
+pub struct ZeroVector<const D: usize>(f32);
+
+//////////////////
+impl<const R: usize, const C: usize> Display for ConstantMatrix<R, C> where [(); R*C]: {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[")?;
+        (0..R).into_iter()
+            .map(|_| std::iter::repeat(&self.0)
+                .map(<f32>::to_string)
+                .take(C)
+                .collect::<Vec<_>>()
+                .join(","))
+            .collect::<Vec<_>>()
+            .join("],[");
+        write!(f, "]")
+    }
+}
+
+impl<const R: usize, const C: usize> Display for DenseMatrix<R, C> where [(); R*C]: {
+    /// Displays the rows of a dense matrix.
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[")?;
+        for r in 0..R {
+            let mut arr = [0f32; C];
+            for c in 0..C {
+                arr[c] = self.0[c*R+r];
+            }
+            write!(f, "[{}]", arr.map(|n| n.to_string()).join(","))?;
+        }
+        write!(f, "]")
+    }
+}
+
+impl<const D: usize> Display for DiagonalMatrix<D, D> where [(); D*D]: {
+    /// Displays the rows of a diagonal matrix.
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[")?;
+        (0..D).into_iter()
+            .map(|r| {
+                let before = (0..r).into_iter().map(|_| 0f32.to_string());
+                let val = std::iter::once(self.0.0[r].to_string()); // TODO: index dense vector
+                let after = ((r+1)..D).into_iter().map(|_| 0f32.to_string());
+                before.chain(val).chain(after).collect::<Vec<_>>().join(",")
+            }).collect::<Vec<_>>().join("],[");
+        write!(f, "]")
+    }
+}
+
+impl<const D: usize> Display for IdentityMatrix<D, D> where [(); D*D]: {
+    /// Displays the rows of an identity matrix.
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[")?;
+        (0..D).into_iter()
+            .map(|r| {
+                let before = (0..r).into_iter().map(|_| 0f32.to_string());
+                let val = std::iter::once(self.0.to_string());
+                let after = ((r+1)..D).into_iter().map(|_| 0f32.to_string());
+                before.chain(val).chain(after).collect::<Vec<_>>().join(",")
+            }).collect::<Vec<_>>().join("],[");
+        write!(f, "]")
+    }
+}
+
+impl<const R: usize, const C: usize> Display for ZeroMatrix<R, C> where [(); R*C]: {
+    /// Displays the rows of a zero matrix.
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[")?;
+        (0..R).into_iter()
+            .map(|_| std::iter::repeat("0")
+                .take(C)
+                .collect::<Vec<_>>()
+                .join(","))
+            .collect::<Vec<_>>()
+            .join("],[");
+        write!(f, "]")
+    }
+}
+
+//////////////////
+
+#[derive(Clone, Debug)]
 pub struct Matrix<const R: usize, const C: usize>(pub(super) [f32; R*C])
     where [(); R*C]: Sized;
 

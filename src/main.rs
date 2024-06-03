@@ -94,7 +94,7 @@ fn main() {
     let input = Vector::from_arr([1., 2., 3.]);
     let target = Vector::from_arr([0., 0., 1.]);
 
-    let mut model = Model::new(chain, MeanSquaredErrorLoss);
+    let mut model = Model::new(chain, SoftmaxCrossEntropyLoss);
     // println!("{}\t{}", model.layers.0.W, model.layers.0.b);
     // println!("{}\t{}", model.layers.1.W, model.layers.1.b);
     // println!("{}\t{}", model.layers.2.W, model.layers.2.b);
