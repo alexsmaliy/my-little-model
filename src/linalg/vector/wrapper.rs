@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::ops::Index;
+use std::ops::{Add, Index, IndexMut, Mul, Sub};
 
 use crate::linalg::MatrixWrapper;
 
@@ -150,6 +150,159 @@ impl<const D: usize> VectorWrapper<D> {
     }
 }
 
+impl<const D: usize> Add<&VectorWrapper<D>> for &VectorWrapper<D> {
+    type Output = VectorWrapper<D>;
+
+    fn add(self, rhs: &VectorWrapper<D>) -> Self::Output {
+        use VectorWrapper as V;
+        match (self, rhs) {
+            (V::Constant(v1), V::Constant(v2)) => V::Constant(v1 + v2),
+            (V::Constant(v1), V::Dense(v2)) => V::Dense(v1 + v2),
+            (V::Constant(v1), V::OneHot(v2)) => V::Dense(v1 + v2),
+            (V::Constant(v1), V::Sparse(v2)) => V::Dense(v1 + v2),
+            (V::Constant(v1), V::Zero(v2)) => V::Constant(v1 + v2),
+
+            (V::Dense(v1), V::Constant(v2)) => V::Dense(v1 + v2),
+            (V::Dense(v1), V::Dense(v2)) => V::Dense(v1 + v2),
+            (V::Dense(v1), V::OneHot(v2)) => V::Dense(v1 + v2),
+            (V::Dense(v1), V::Sparse(v2)) => V::Dense(v1 + v2),
+            (V::Dense(v1), V::Zero(v2)) => V::Dense(v1 + v2),
+
+            (V::OneHot(v1), V::Constant(v2)) => V::Dense(v1 + v2),
+            (V::OneHot(v1), V::Dense(v2)) => V::Dense(v1 + v2),
+            (V::OneHot(v1), V::OneHot(v2)) => V::Sparse(v1 + v2),
+            (V::OneHot(v1), V::Sparse(v2)) => V::Sparse(v1 + v2),
+            (V::OneHot(v1), V::Zero(v2)) => V::OneHot(v1 + v2),
+
+            (V::Sparse(v1), V::Constant(v2)) => V::Dense(v1 + v2),
+            (V::Sparse(v1), V::Dense(v2)) => V::Dense(v1 + v2),
+            (V::Sparse(v1), V::OneHot(v2)) => V::Sparse(v1 + v2),
+            (V::Sparse(v1), V::Sparse(v2)) => V::Sparse(v1 + v2),
+            (V::Sparse(v1), V::Zero(v2)) => V::Sparse(v1 + v2),
+
+            (V::Zero(v1), V::Constant(v2)) => V::Constant(v1 + v2),
+            (V::Zero(v1), V::Dense(v2)) => V::Dense(v1 + v2),
+            (V::Zero(v1), V::OneHot(v2)) => V::OneHot(v1 + v2),
+            (V::Zero(v1), V::Sparse(v2)) => V::Sparse(v1 + v2),
+            (V::Zero(v1), V::Zero(v2)) => V::Zero(v1 + v2),
+        }
+    }
+}
+
+impl<const D: usize> Add<&VectorWrapper<D>> for f32 {
+    type Output = VectorWrapper<D>;
+
+    fn add(self, rhs: &VectorWrapper<D>) -> Self::Output {
+        use VectorWrapper as V;
+        match rhs {
+            V::Constant(v) => V::Constant(v + self),
+            V::Dense(v) => V::Dense(v + self),
+            V::OneHot(v) => V::Dense(v + self),
+            V::Sparse(v) => V::Dense(v + self),
+            V::Zero(v) => V::Constant(v + self),
+        }
+    }
+}
+
+impl<const D: usize> Add<f32> for &VectorWrapper<D> {
+    type Output = VectorWrapper<D>;
+
+    fn add(self, rhs: f32) -> Self::Output {
+        use VectorWrapper as V;
+        match self {
+            V::Constant(v) => V::Constant(v + rhs),
+            V::Dense(v) => V::Dense(v + rhs),
+            V::OneHot(v) => V::Dense(v + rhs),
+            V::Sparse(v) => V::Dense(v + rhs),
+            V::Zero(v) => V::Constant(v + rhs),
+        }
+    }
+}
+
+impl<const D: usize> Sub<&VectorWrapper<D>> for &VectorWrapper<D> {
+    type Output = VectorWrapper<D>;
+
+    fn sub(self, rhs: &VectorWrapper<D>) -> Self::Output {
+        use VectorWrapper as V;
+        match (self, rhs) {
+            (V::Constant(v1), V::Constant(v2)) => V::Constant(v1 - v2),
+            (V::Constant(v1), V::Dense(v2)) => V::Dense(v1 - v2),
+            (V::Constant(v1), V::OneHot(v2)) => V::Dense(v1 - v2),
+            (V::Constant(v1), V::Sparse(v2)) => V::Dense(v1 - v2),
+            (V::Constant(v1), V::Zero(v2)) => V::Constant(v1 - v2),
+
+            (V::Dense(v1), V::Constant(v2)) => V::Dense(v1 - v2),
+            (V::Dense(v1), V::Dense(v2)) => V::Dense(v1 - v2),
+            (V::Dense(v1), V::OneHot(v2)) => V::Dense(v1 - v2),
+            (V::Dense(v1), V::Sparse(v2)) => V::Dense(v1 - v2),
+            (V::Dense(v1), V::Zero(v2)) => V::Dense(v1 - v2),
+
+            (V::OneHot(v1), V::Constant(v2)) => V::Dense(v1 - v2),
+            (V::OneHot(v1), V::Dense(v2)) => V::Dense(v1 - v2),
+            (V::OneHot(v1), V::OneHot(v2)) => V::Sparse(v1 - v2),
+            (V::OneHot(v1), V::Sparse(v2)) => V::Sparse(v1 - v2),
+            (V::OneHot(v1), V::Zero(v2)) => V::OneHot(v1 - v2),
+
+            (V::Sparse(v1), V::Constant(v2)) => V::Dense(v1 - v2),
+            (V::Sparse(v1), V::Dense(v2)) => V::Dense(v1 - v2),
+            (V::Sparse(v1), V::OneHot(v2)) => V::Sparse(v1 - v2),
+            (V::Sparse(v1), V::Sparse(v2)) => V::Sparse(v1 - v2),
+            (V::Sparse(v1), V::Zero(v2)) => V::Sparse(v1 - v2),
+
+            (V::Zero(v1), V::Constant(v2)) => V::Constant(v1 - v2),
+            (V::Zero(v1), V::Dense(v2)) => V::Dense(v1 - v2),
+            (V::Zero(v1), V::OneHot(v2)) => V::Sparse(v1 - v2),
+            (V::Zero(v1), V::Sparse(v2)) => V::Sparse(v1 - v2),
+            (V::Zero(v1), V::Zero(v2)) => V::Zero(v1 - v2),
+        }
+    }
+}
+
+impl<const D: usize> Sub<&VectorWrapper<D>> for f32 {
+    type Output = VectorWrapper<D>;
+
+    fn sub(self, rhs: &VectorWrapper<D>) -> Self::Output {
+        use VectorWrapper as V;
+        match rhs {
+            V::Constant(v) => V::Constant(v - self),
+            V::Dense(v) => V::Dense(v - self),
+            V::OneHot(v) => V::Dense(v - self),
+            V::Sparse(v) => V::Dense(v - self),
+            V::Zero(v) => V::Constant(v - self),
+        }
+    }
+}
+
+impl<const D: usize> Sub<f32> for &VectorWrapper<D> {
+    type Output = VectorWrapper<D>;
+
+    fn sub(self, rhs: f32) -> Self::Output {
+        use VectorWrapper as V;
+        match self {
+            V::Constant(v) => V::Constant(v - rhs),
+            V::Dense(v) => V::Dense(v - rhs),
+            V::OneHot(v) => V::Dense(v - rhs),
+            V::Sparse(v) => V::Dense(v - rhs),
+            V::Zero(v) => V::Constant(v - rhs),
+        }
+    }
+}
+
+impl<const D: usize> Mul<&VectorWrapper<D>> for f32 {
+    type Output = VectorWrapper<D>;
+
+    fn mul(self, rhs: &VectorWrapper<D>) -> Self::Output {
+        use VectorWrapper as V;
+        match rhs {
+            V::Constant(v) => V::Constant(v * self),
+            V::Dense(v) => V::Dense(v * self),
+            V::OneHot(v) => V::Sparse(v * self),
+            V::Sparse(v) => V::Sparse(v * self),
+            V::Zero(v) => V::Zero(v * self),
+        }
+    }
+}
+
 ///////////////////
 /// VECTOR ITER ///
 ///////////////////
@@ -214,6 +367,19 @@ impl<const D: usize> Index<usize> for VectorWrapper<D> {
     }
 }
 
+impl<const D: usize> IndexMut<usize> for VectorWrapper<D> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        use VectorWrapper as V;
+        match self {
+            V::Constant(_v) => todo!(),
+            V::Dense(v) => &mut v[index],
+            V::OneHot(_v) => todo!(),
+            V::Sparse(_v) => todo!(),
+            V::Zero(_v) => todo!(),
+        }
+    }
+}
+
 impl<const D: usize> PartialEq for VectorWrapper<D> {
     fn eq(&self, other: &Self) -> bool {
         use VectorWrapper as V;
@@ -223,7 +389,20 @@ impl<const D: usize> PartialEq for VectorWrapper<D> {
             (V::OneHot(v1), V::OneHot(v2)) => v1 == v2,
             (V::Sparse(v1), V::Sparse(v2)) => v1 == v2,
             (V::Zero(v1), V::Zero(v2)) => v1 == v2,
-            _ => false, // TODO: euqality between mixed flavors.
+            _ => false, // TODO: equality between mixed flavors.
+        }
+    }
+}
+
+impl<const D: usize> From<VectorWrapper<D>> for [f32; D] {
+    fn from(vector: VectorWrapper<D>) -> Self {
+        use VectorWrapper as V;
+        match vector {
+            V::Constant(_v) => todo!(),
+            V::Dense(v) => v.0,
+            V::OneHot(_v) => todo!(),
+            V::Sparse(_v) => todo!(),
+            V::Zero(_v) => todo!(),
         }
     }
 }

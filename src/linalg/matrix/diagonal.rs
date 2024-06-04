@@ -1,8 +1,6 @@
 use std::fmt::Display;
 use std::ops::{Add, Mul, Neg, Sub};
 
-use crate::linalg::vector::VectorWrapper;
-
 use super::constant::ConstantMatrix;
 use super::dense::DenseMatrix;
 use super::identity::IdentityMatrix;
@@ -11,7 +9,7 @@ use super::zero::ZeroMatrix;
 
 #[derive(Clone, Debug)]
 pub struct DiagonalMatrix<const R: usize, const C: usize>(
-    pub(super) VectorWrapper<R>,
+    pub(super) [f32; R],
 ) where [(); R*C]: Sized;
 
 // Impl is provided for possibly unequal R and C,
@@ -32,7 +30,7 @@ impl<const R: usize, const C: usize> DiagonalMatrix<R, C>
             .collect::<Vec<_>>()
             .try_into()
             .unwrap();
-        DiagonalMatrix(VectorWrapper::from_arr(arr))
+        DiagonalMatrix(arr)
     }
 }
 
@@ -276,6 +274,22 @@ impl<const R: usize, const C: usize> Sub<f32> for &DiagonalMatrix<R, C> where [(
     type Output = DenseMatrix<R, C>;
 
     fn sub(self, _rhs: f32) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Mul<&DiagonalMatrix<R, C>> for f32 where [(); R*C]: Sized {
+    type Output = DiagonalMatrix<R, C>;
+
+    fn mul(self, _rhs: &DiagonalMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Mul<f32> for &DiagonalMatrix<R, C> where [(); R*C]: Sized {
+    type Output = DiagonalMatrix<R, C>;
+
+    fn mul(self, _rhs: f32) -> Self::Output {
         todo!()
     }
 }

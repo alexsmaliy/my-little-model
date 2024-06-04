@@ -20,7 +20,7 @@ pub enum MatrixWrapper<const R: usize, const C: usize> where [(); R*C]: Sized {
     Zero(ZeroMatrix<R, C>),
 }
 
-impl<const R: usize, const C: usize> MatrixWrapper<R, C> where [(); R*C]: Sized, [(); C*R]: Sized {
+impl<const R: usize, const C: usize> MatrixWrapper<R, C> where [(); R*C]: Sized {
     // constructor
     pub fn constant(c: f32) -> Self {
         Self::Constant(ConstantMatrix(c))
@@ -47,7 +47,7 @@ impl<const R: usize, const C: usize> MatrixWrapper<R, C> where [(); R*C]: Sized,
     }
 
     /// Matrix transpose.
-    pub fn T(&self) -> MatrixWrapper<C, R> {
+    pub fn T(&self) -> MatrixWrapper<C, R> where [(); C*R]: Sized {
         use MatrixWrapper as M;
         match self {
             M::Constant(m) => M::Constant::<C, R>(m.T()),
@@ -61,8 +61,8 @@ impl<const R: usize, const C: usize> MatrixWrapper<R, C> where [(); R*C]: Sized,
 }
 
 impl<const D: usize> MatrixWrapper<D, D> where [(); D*D]: Sized {
-    pub fn diag(v: VectorWrapper<D>) -> Self {
-        Self::Diagonal(DiagonalMatrix(v))
+    pub fn diag(main_diag: [f32; D]) -> Self {
+        Self::Diagonal(DiagonalMatrix(main_diag))
     }
     
     pub fn I() -> Self {
@@ -230,6 +230,22 @@ impl<const R: usize, const C: usize, const C2: usize> Mul<&MatrixWrapper<C, C2>>
             (M::Zero(m1), M::Identity(m2)) => M::Zero(m1 * m2),
             (M::Zero(m1), M::Sparse(m2)) => M::Zero(m1 * m2),
             (M::Zero(m1), M::Zero(m2)) => M::Zero(m1 * m2),
+        }
+    }
+}
+
+impl<const R: usize, const C: usize> Mul<&MatrixWrapper<R, C>> for f32 where [(); R*C]: Sized {
+    type Output = MatrixWrapper<R, C>;
+
+    fn mul(self, rhs: &MatrixWrapper<R, C>) -> Self::Output {
+        use MatrixWrapper as M;
+        match rhs {
+            M::Constant(m) => M::Constant(m * self),
+            M::Dense(m) => M::Dense(m * self),
+            M::Diagonal(m) => M::Diagonal(m * self),
+            M::Identity(m) => M::Diagonal(m * self),
+            M::Sparse(m) => M::Sparse(m * self),
+            M::Zero(m) => M::Zero(m * self),
         }
     }
 }

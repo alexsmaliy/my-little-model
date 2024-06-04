@@ -2,7 +2,8 @@ use num_traits::cast::AsPrimitive;
 use rand::thread_rng;
 use rand::distributions::{Distribution, Uniform};
 
-use crate::linalg::{Matrix, Vector};
+use crate::linalg::vector::VectorWrapper;
+use crate::linalg::matrix::MatrixWrapper;
 
 pub enum Biases<const DIM: usize> {
     Zeros,
@@ -18,22 +19,22 @@ impl<const DIM: usize> Biases<DIM> {
         Self::UniformlyRandom { lo, hi }
     }
 
-    fn lazy_uniform_random(lo: f32, hi: f32) -> Vector<DIM> {
+    fn lazy_uniform_random(lo: f32, hi: f32) -> VectorWrapper<DIM> {
         let rng = thread_rng();
         let mut uniform = Uniform::<f32>::new(lo, hi).sample_iter(rng);
         let mut arr: [f32; DIM] = [0f32; DIM];
         for i in 0..DIM {
             arr[i] = uniform.next().unwrap();
         }
-        Vector::from_arr(arr)
+        VectorWrapper::from_arr(arr)
     }
 }
 
 // No From impl, this is a one-way conversion.
-impl<const DIM: usize> Into<Vector<DIM>> for Biases<DIM> {
-    fn into(self) -> Vector<DIM> {
+impl<const DIM: usize> Into<VectorWrapper<DIM>> for Biases<DIM> {
+    fn into(self) -> VectorWrapper<DIM> {
         match self {
-            Self::Zeros => Vector::zero(),
+            Self::Zeros => VectorWrapper::zero(),
             Self::UniformlyRandom { lo, hi } => Biases::lazy_uniform_random(lo, hi),
         }
     }
@@ -61,7 +62,7 @@ impl<const IN: usize, const OUT: usize> Weights<IN, OUT> where [(); OUT*IN]: Siz
         Self::UniformlyRandom { lo, hi }
     }
 
-    fn lazy_uniform_random(lo: f32, hi: f32) -> Matrix<OUT, IN> {
+    fn lazy_uniform_random(lo: f32, hi: f32) -> MatrixWrapper<OUT, IN> {
         let rng = thread_rng();
         let mut uniform = Uniform::<f32>::new(lo, hi).sample_iter(rng);
         let mut arr: [f32; OUT*IN] = [0f32; OUT*IN];
@@ -69,7 +70,7 @@ impl<const IN: usize, const OUT: usize> Weights<IN, OUT> where [(); OUT*IN]: Siz
             arr[i] = uniform.next().unwrap();
         }
         // uniform.collect::<Vec<_>>().try_into().unwrap(); // TODO: this panics.
-        Matrix::from_arr(arr)
+        MatrixWrapper::from_arr(arr)
     }
 }
 
@@ -82,10 +83,10 @@ impl<const IN: usize, const OUT: usize> Default for Weights<IN, OUT> where [(); 
 }
 
 // No From impl, this is a one-way conversion.
-impl<const IN: usize, const OUT: usize> Into<Matrix<OUT, IN>> for Weights<IN, OUT> where [(); OUT*IN]: Sized {
-    fn into(self) -> Matrix<OUT, IN> {
+impl<const IN: usize, const OUT: usize> Into<MatrixWrapper<OUT, IN>> for Weights<IN, OUT> where [(); OUT*IN]: Sized {
+    fn into(self) -> MatrixWrapper<OUT, IN> {
         match self {
-            Self::Zeros => Matrix::zero(),
+            Self::Zeros => MatrixWrapper::zero(),
             Self::UniformlyRandom { lo, hi } => Weights::lazy_uniform_random(lo, hi),
         }
     }

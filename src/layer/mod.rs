@@ -1,4 +1,4 @@
-use crate::linalg::{Matrix, Vector};
+use crate::linalg::{MatrixWrapper, VectorWrapper};
 use crate::model::loss::LossFunction;
 use crate::model::ModelOutput;
 
@@ -10,21 +10,21 @@ pub trait ModelLayer<const IN: usize, const OUT: usize>
         [(); OUT*IN]: Sized,
         [(); OUT*OUT]: Sized,
 {
-    fn forward(&mut self, input_src: &Vector<IN>);
-    fn backward(&mut self, upstream_Wᵀs: &Vector<OUT>);
-    fn update_weights(&mut self, learning_rate: f32, a_prev: &Vector<IN>);
-    fn nonlinear_output(&self) -> &Vector<OUT>;
-    fn linear_output(&self) -> &Vector<OUT>;
+    fn forward(&mut self, input_src: &VectorWrapper<IN>);
+    fn backward(&mut self, upstream_Wᵀs: &VectorWrapper<OUT>);
+    fn update_weights(&mut self, learning_rate: f32, a_prev: &VectorWrapper<IN>);
+    fn nonlinear_output(&self) -> &VectorWrapper<OUT>;
+    fn linear_output(&self) -> &VectorWrapper<OUT>;
     fn f(&self) -> Box<dyn Fn(f32) -> f32 + 'static>;
     fn df(&self) -> Box<dyn Fn(f32) -> f32 + 'static>;
-    fn set_sensitivities(&mut self, s: Vector<OUT>);
-    fn sensitivities(&self) -> &Vector<IN>;
+    fn set_sensitivities(&mut self, s: VectorWrapper<OUT>);
+    fn sensitivities(&self) -> &VectorWrapper<IN>;
 }
 
 pub trait ModelLayerChain<const IN: usize, const OUT: usize, T> {
     fn run_once<L: LossFunction>(
         &mut self,
-        input_pair: (&Vector<IN>, &Vector<OUT>),
+        input_pair: (&VectorWrapper<IN>, &VectorWrapper<OUT>),
         loss_function: L,
         learning_rate: f32,
     ) -> ModelOutput<OUT>;
@@ -58,7 +58,7 @@ impl<
 {
     fn run_once<LF: LossFunction>(
         &mut self,
-        input_pair: (&Vector<A>, &Vector<D>),
+        input_pair: (&VectorWrapper<A>, &VectorWrapper<D>),
         loss_function: LF,
         learning_rate: f32,
     ) -> ModelOutput<D> {
@@ -79,7 +79,7 @@ impl<
         let (n_last, df_last) = (self.2.linear_output(), self.2.df());
 
         // This doesn't depend on choice of L.
-        let da_dn = Matrix::diag(&n_last.map(df_last).into());
+        let da_dn = MatrixWrapper::diag(n_last.map(df_last).into());
         // This depends on choice of L.
         let dL_da = dL_da(target, &model_output);
         // let dL_da = -2f32 * &errors;

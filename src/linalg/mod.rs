@@ -1,11 +1,12 @@
 pub use matrix::Matrix; // re-export
 pub use vector::Vector; // re-export
 
-mod matrix;
+pub(super) mod matrix;
 mod order;
-mod vector;
+pub(super) mod vector;
 
 pub use matrix::MatrixWrapper;
+pub use vector::VectorWrapper;
 
 //////////////////////////////////////////
 /// TESTS OF LINEAR ALGEBRA OPERATIONS ///

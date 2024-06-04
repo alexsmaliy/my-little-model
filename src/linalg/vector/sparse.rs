@@ -1,4 +1,4 @@
-use std::{collections::HashMap, ops::Index};
+use std::{collections::HashMap, ops::{Add, Index, Mul, Sub}};
 
 use ahash::RandomState;
 
@@ -26,6 +26,110 @@ impl<const D: usize> CanMap for &SparseVector<D> {
     type Output = DenseVector<D>;
 
     fn map(&self, _f: impl Fn(f32) -> f32) -> Self::Output {
+        todo!()
+    }
+}
+
+////////////////////////////
+/// SPARSE VEC ADD IMPLS ///
+////////////////////////////
+
+impl<const D: usize> Add<f32> for &SparseVector<D> {
+    type Output = DenseVector<D>;
+
+    fn add(self, _rhs: f32) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const D: usize> Add<&ConstantVector<D>> for &SparseVector<D> {
+    type Output = DenseVector<D>;
+
+    fn add(self, _rhs: &ConstantVector<D>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const D: usize> Add<&DenseVector<D>> for &SparseVector<D> {
+    type Output = DenseVector<D>;
+
+    fn add(self, _rhs: &DenseVector<D>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const D: usize> Add<&OneHotVector<D>> for &SparseVector<D> {
+    type Output = SparseVector<D>;
+
+    fn add(self, _rhs: &OneHotVector<D>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const D: usize> Add<&SparseVector<D>> for &SparseVector<D> {
+    type Output = SparseVector<D>;
+
+    fn add(self, _rhs: &SparseVector<D>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const D: usize> Add<&ZeroVector<D>> for &SparseVector<D> {
+    type Output = SparseVector<D>;
+
+    fn add(self, _rhs: &ZeroVector<D>) -> Self::Output {
+        todo!()
+    }
+}
+
+////////////////////////////
+/// SPARSE VEC SUB IMPLS ///
+////////////////////////////
+
+impl<const D: usize> Sub<f32> for &SparseVector<D> {
+    type Output = DenseVector<D>;
+
+    fn sub(self, _rhs: f32) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const D: usize> Sub<&ConstantVector<D>> for &SparseVector<D> {
+    type Output = DenseVector<D>;
+
+    fn sub(self, _rhs: &ConstantVector<D>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const D: usize> Sub<&DenseVector<D>> for &SparseVector<D> {
+    type Output = DenseVector<D>;
+
+    fn sub(self, _rhs: &DenseVector<D>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const D: usize> Sub<&OneHotVector<D>> for &SparseVector<D> {
+    type Output = SparseVector<D>;
+
+    fn sub(self, _rhs: &OneHotVector<D>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const D: usize> Sub<&SparseVector<D>> for &SparseVector<D> {
+    type Output = SparseVector<D>;
+
+    fn sub(self, _rhs: &SparseVector<D>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const D: usize> Sub<&ZeroVector<D>> for &SparseVector<D> {
+    type Output = SparseVector<D>;
+
+    fn sub(self, _rhs: &ZeroVector<D>) -> Self::Output {
         todo!()
     }
 }
@@ -114,6 +218,18 @@ impl<const D: usize, const D2: usize> CanOuterProduct<&ZeroVector<D2>> for &Spar
     type Output = DenseMatrix<D, D2>;
     
     fn outer(&self, _other: &ZeroVector<D2>) -> Self::Output {
+        todo!()
+    }
+}
+
+//////////////////////////////
+/// SPARSE VEC ARITH IMPLS ///
+//////////////////////////////
+
+impl<const D: usize> Mul<f32> for &SparseVector<D> {
+    type Output = SparseVector<D>;
+
+    fn mul(self, _rhs: f32) -> Self::Output {
         todo!()
     }
 }

@@ -1,6 +1,6 @@
-use crate::linalg::Vector;
+use crate::linalg::VectorWrapper;
 
-type V<const N: usize> = Vector<N>;
+type V<const N: usize> = VectorWrapper<N>;
 
 pub trait LossFunction: Copy {
     fn get_L<const DIM: usize>(&self) -> impl Fn(&V<DIM>, &V<DIM>) -> (f32, V<DIM>) + 'static;

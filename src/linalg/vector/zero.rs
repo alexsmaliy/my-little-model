@@ -1,4 +1,4 @@
-use std::ops::Index;
+use std::ops::{Add, Index, Mul, Sub};
 
 use crate::linalg::matrix::DenseMatrix;
 
@@ -23,6 +23,110 @@ impl<const D: usize> CanMap for &ZeroVector<D> {
     type Output = DenseVector<D>;
 
     fn map(&self, _f: impl Fn(f32) -> f32) -> Self::Output {
+        todo!()
+    }
+}
+
+//////////////////////////
+/// ZERO VEC ADD IMPLS ///
+//////////////////////////
+
+impl<const D: usize> Add<f32> for &ZeroVector<D> {
+    type Output = ConstantVector<D>;
+
+    fn add(self, _rhs: f32) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const D: usize> Add<&ConstantVector<D>> for &ZeroVector<D> {
+    type Output = ConstantVector<D>;
+
+    fn add(self, _rhs: &ConstantVector<D>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const D: usize> Add<&DenseVector<D>> for &ZeroVector<D> {
+    type Output = DenseVector<D>;
+
+    fn add(self, _rhs: &DenseVector<D>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const D: usize> Add<&OneHotVector<D>> for &ZeroVector<D> {
+    type Output = OneHotVector<D>;
+
+    fn add(self, _rhs: &OneHotVector<D>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const D: usize> Add<&SparseVector<D>> for &ZeroVector<D> {
+    type Output = SparseVector<D>;
+
+    fn add(self, _rhs: &SparseVector<D>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const D: usize> Add<&ZeroVector<D>> for &ZeroVector<D> {
+    type Output = ZeroVector<D>;
+
+    fn add(self, _rhs: &ZeroVector<D>) -> Self::Output {
+        todo!()
+    }
+}
+
+//////////////////////////
+/// ZERO VEC SUB IMPLS ///
+//////////////////////////
+
+impl<const D: usize> Sub<f32> for &ZeroVector<D> {
+    type Output = ConstantVector<D>;
+
+    fn sub(self, _rhs: f32) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const D: usize> Sub<&ConstantVector<D>> for &ZeroVector<D> {
+    type Output = ConstantVector<D>;
+
+    fn sub(self, _rhs: &ConstantVector<D>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const D: usize> Sub<&DenseVector<D>> for &ZeroVector<D> {
+    type Output = DenseVector<D>;
+
+    fn sub(self, _rhs: &DenseVector<D>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const D: usize> Sub<&OneHotVector<D>> for &ZeroVector<D> {
+    type Output = SparseVector<D>;
+
+    fn sub(self, _rhs: &OneHotVector<D>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const D: usize> Sub<&SparseVector<D>> for &ZeroVector<D> {
+    type Output = SparseVector<D>;
+
+    fn sub(self, _rhs: &SparseVector<D>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const D: usize> Sub<&ZeroVector<D>> for &ZeroVector<D> {
+    type Output = ZeroVector<D>;
+
+    fn sub(self, _rhs: &ZeroVector<D>) -> Self::Output {
         todo!()
     }
 }
@@ -111,6 +215,18 @@ impl<const D: usize, const D2: usize> CanOuterProduct<&ZeroVector<D2>> for &Zero
     type Output = DenseMatrix<D, D2>;
     
     fn outer(&self, _other: &ZeroVector<D2>) -> Self::Output {
+        todo!()
+    }
+}
+
+////////////////////////////
+/// ZERO VEC ARITH IMPLS ///
+////////////////////////////
+
+impl<const D: usize> Mul<f32> for &ZeroVector<D> {
+    type Output = ZeroVector<D>;
+
+    fn mul(self, _rhs: f32) -> Self::Output {
         todo!()
     }
 }
