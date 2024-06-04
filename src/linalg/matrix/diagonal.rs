@@ -1,6 +1,8 @@
 use std::fmt::Display;
 use std::ops::{Add, Mul, Neg, Sub};
 
+use crate::linalg::vector::DenseVector;
+
 use super::constant::ConstantMatrix;
 use super::dense::DenseMatrix;
 use super::identity::IdentityMatrix;
@@ -247,6 +249,19 @@ impl<const R: usize, const C: usize, const C2: usize> Mul<&ZeroMatrix<C, C2>> fo
 
     fn mul(self, _rhs: &ZeroMatrix<C, C2>) -> Self::Output {
         todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Mul<&DenseVector<C>> for &DiagonalMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = DenseVector<R>;
+
+    fn mul(self, rhs: &DenseVector<C>) -> Self::Output {
+        let tmp = self.0.iter().copied();
+        let tmp = tmp.zip(rhs.0.iter()).take(R);
+        let tmp = tmp.map(|(x, y)| x * y).collect::<Vec<_>>().try_into().unwrap();
+        DenseVector(tmp)
     }
 }
 

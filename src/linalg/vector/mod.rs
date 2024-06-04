@@ -28,7 +28,7 @@ trait CanMap {
 
 trait CanOuterProduct<V> {
     type Output;
-    fn outer(&self, other: V) -> Self::Output;
+    fn outer(self, other: V) -> Self::Output;
 }
 
 #[derive(Clone, Debug)]

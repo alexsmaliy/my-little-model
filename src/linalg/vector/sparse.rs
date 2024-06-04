@@ -177,7 +177,7 @@ impl<const D: usize, const D2: usize> CanOuterProduct<&ConstantVector<D2>> for &
 {
     type Output = DenseMatrix<D, D2>;
 
-    fn outer(&self, _other: &ConstantVector<D2>) -> Self::Output {
+    fn outer(self, _other: &ConstantVector<D2>) -> Self::Output {
         todo!()
     }
 }
@@ -187,7 +187,7 @@ impl<const D: usize, const D2: usize> CanOuterProduct<&DenseVector<D2>> for &Spa
 {
     type Output = DenseMatrix<D, D2>;
 
-    fn outer(&self, _other: &DenseVector<D2>) -> Self::Output {
+    fn outer(self, _other: &DenseVector<D2>) -> Self::Output {
         todo!()
     }
 }
@@ -197,7 +197,7 @@ impl<const D: usize, const D2: usize> CanOuterProduct<&OneHotVector<D2>> for &Sp
 {
     type Output = DenseMatrix<D, D2>;
 
-    fn outer(&self, _other: &OneHotVector<D2>) -> Self::Output {
+    fn outer(self, _other: &OneHotVector<D2>) -> Self::Output {
         todo!()
     }
 }
@@ -207,7 +207,7 @@ impl<const D: usize, const D2: usize> CanOuterProduct<&SparseVector<D2>> for &Sp
 {
     type Output = DenseMatrix<D, D2>;
 
-    fn outer(&self, _other: &SparseVector<D2>) -> Self::Output {
+    fn outer(self, _other: &SparseVector<D2>) -> Self::Output {
         todo!()
     }
 }
@@ -217,7 +217,7 @@ impl<const D: usize, const D2: usize> CanOuterProduct<&ZeroVector<D2>> for &Spar
 {
     type Output = DenseMatrix<D, D2>;
     
-    fn outer(&self, _other: &ZeroVector<D2>) -> Self::Output {
+    fn outer(self, _other: &ZeroVector<D2>) -> Self::Output {
         todo!()
     }
 }

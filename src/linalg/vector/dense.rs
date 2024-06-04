@@ -6,11 +6,11 @@ use super::{CanDotProduct, CanMap, CanOuterProduct, ConstantVector, OneHotVector
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct DenseVector<const D: usize>(
-    pub(super) [f32; D],
+    pub(crate) [f32; D],
 );
 
 impl<const D: usize> DenseVector<D> {
-    pub(super) fn from_arr(arr: [f32; D]) -> Self {
+    pub(crate) fn from_arr(arr: [f32; D]) -> Self {
         Self(arr)
     }
 
@@ -19,15 +19,15 @@ impl<const D: usize> DenseVector<D> {
     }
 
     pub(super) fn sum_of_squares(&self) -> f32 {
-        todo!()
+        self.0.iter().fold(0f32, |acc, x| acc + x*x)
     }
 }
 
 impl<const D: usize> CanMap for &DenseVector<D> {
     type Output = DenseVector<D>;
 
-    fn map(&self, _f: impl Fn(f32) -> f32) -> Self::Output {
-        todo!()
+    fn map(&self, f: impl Fn(f32) -> f32) -> Self::Output {
+        DenseVector(self.0.clone().map(f))
     }
 }
 
@@ -54,8 +54,14 @@ impl<const D: usize> Add<&ConstantVector<D>> for &DenseVector<D> {
 impl<const D: usize> Add<&DenseVector<D>> for &DenseVector<D> {
     type Output = DenseVector<D>;
 
-    fn add(self, _rhs: &DenseVector<D>) -> Self::Output {
-        todo!()
+    fn add(self, rhs: &DenseVector<D>) -> Self::Output {
+        let mut arr = [0f32; D];
+        self.0.iter()
+            .zip(rhs.0.iter())
+            .map(|(n, m)| n + m)
+            .enumerate()
+            .for_each(|(i, x)| arr[i] = x);
+        DenseVector(arr)
     }
 }
 
@@ -106,8 +112,14 @@ impl<const D: usize> Sub<&ConstantVector<D>> for &DenseVector<D> {
 impl<const D: usize> Sub<&DenseVector<D>> for &DenseVector<D> {
     type Output = DenseVector<D>;
 
-    fn sub(self, _rhs: &DenseVector<D>) -> Self::Output {
-        todo!()
+    fn sub(self, rhs: &DenseVector<D>) -> Self::Output {
+        let mut arr = [0f32; D];
+        self.0.iter()
+            .zip(rhs.0.iter())
+            .map(|(n, m)| n - m)
+            .enumerate()
+            .for_each(|(i, x)| arr[i] = x);
+        DenseVector(arr)
     }
 }
 
@@ -178,7 +190,7 @@ impl<const D: usize, const D2: usize> CanOuterProduct<&ConstantVector<D2>> for &
 {
     type Output = DenseMatrix<D, D2>;
 
-    fn outer(&self, _other: &ConstantVector<D2>) -> Self::Output {
+    fn outer(self, _other: &ConstantVector<D2>) -> Self::Output {
         todo!()
     }
 }
@@ -188,8 +200,12 @@ impl<const D: usize, const D2: usize> CanOuterProduct<&DenseVector<D2>> for &Den
 {
     type Output = DenseMatrix<D, D2>;
 
-    fn outer(&self, _other: &DenseVector<D2>) -> Self::Output {
-        todo!()
+    fn outer(self, other: &DenseVector<D2>) -> Self::Output {
+        let mut arr = [0f32; D*D2];
+        for col in 0..D2 {
+            arr[col*D..(col+1)*D].copy_from_slice(&(self * other[col]).0);
+        }
+        DenseMatrix::from_arr(arr)
     }
 }
 
@@ -198,7 +214,7 @@ impl<const D: usize, const D2: usize> CanOuterProduct<&OneHotVector<D2>> for &De
 {
     type Output = DenseMatrix<D, D2>;
 
-    fn outer(&self, _other: &OneHotVector<D2>) -> Self::Output {
+    fn outer(self, _other: &OneHotVector<D2>) -> Self::Output {
         todo!()
     }
 }
@@ -208,7 +224,7 @@ impl<const D: usize, const D2: usize> CanOuterProduct<&SparseVector<D2>> for &De
 {
     type Output = DenseMatrix<D, D2>;
 
-    fn outer(&self, _other: &SparseVector<D2>) -> Self::Output {
+    fn outer(self, _other: &SparseVector<D2>) -> Self::Output {
         todo!()
     }
 }
@@ -218,7 +234,7 @@ impl<const D: usize, const D2: usize> CanOuterProduct<&ZeroVector<D2>> for &Dens
 {
     type Output = DenseMatrix<D, D2>;
     
-    fn outer(&self, _other: &ZeroVector<D2>) -> Self::Output {
+    fn outer(self, _other: &ZeroVector<D2>) -> Self::Output {
         todo!()
     }
 }
@@ -230,8 +246,12 @@ impl<const D: usize, const D2: usize> CanOuterProduct<&ZeroVector<D2>> for &Dens
 impl<const D: usize> Mul<f32> for &DenseVector<D> {
     type Output = DenseVector<D>;
 
-    fn mul(self, _rhs: f32) -> Self::Output {
-        todo!()
+    fn mul(self, rhs: f32) -> Self::Output {
+        let mut arr = [0f32; D];
+        self.0.iter()
+           .enumerate()
+           .for_each(|(i, x)| arr[i] = x * rhs);
+        DenseVector(arr)
     }
 }
 

@@ -270,7 +270,11 @@ impl<const R: usize, const C: usize> Mul<&VectorWrapper<C>> for &MatrixWrapper<R
     type Output = VectorWrapper<R>;
     
     fn mul(self, rhs: &VectorWrapper<C>) -> Self::Output {
+        use MatrixWrapper as M;
+        use VectorWrapper as V;
         match (self, rhs) {
+            (M::Dense(m), V::Dense(v)) => V::Dense(m * v),
+            (M::Diagonal(m), V::Dense(v)) => V::Dense(m * v),
             // TODO: matrix-vector mul impls.
             _ => unimplemented!(),
         }

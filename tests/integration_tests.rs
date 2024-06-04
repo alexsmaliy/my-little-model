@@ -2,7 +2,7 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 
-use mylittlemodel::linalg::{Matrix, Vector};
+use mylittlemodel::linalg::{Matrix, Vector, VectorWrapper};
 use mylittlemodel::model::loss::MeanSquaredErrorLoss;
 use mylittlemodel::model::Model;
 use mylittlemodel::layer::connected::FullyConnectedLayer;
@@ -91,8 +91,8 @@ fn kitchen_sink_test() {
     //     model.curr_errors, model.curr_loss, model.s1
     // );
 
-    let input = Vector::from_arr([1., 2., 3.]);
-    let target = Vector::from_arr([0., 0., 1.]);
+    let input = VectorWrapper::from_arr([1., 2., 3.]);
+    let target = VectorWrapper::from_arr([0., 0., 1.]);
 
     let mut model = Model::new(chain, MeanSquaredErrorLoss);
     // println!("{}\t{}", model.layers.0.W, model.layers.0.b);
