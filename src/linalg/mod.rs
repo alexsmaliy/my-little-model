@@ -1,5 +1,5 @@
-pub use matrix::Matrix; // re-export
-pub use vector::Vector; // re-export
+pub use matrix::OldMatrixDoNotUse; // re-export
+pub use vector::OldVectorDoNotUse; // re-export
 
 pub(super) mod matrix;
 mod order;
@@ -18,7 +18,7 @@ mod tests {
 
     #[test]
     fn transpose_twice() {
-        let m = Matrix::from_cols(&[
+        let m = OldMatrixDoNotUse::from_cols(&[
             [1., 2., 3., 4.],
             [5., 6., 7., 8.],
             [9., 10., 11., 12.],
@@ -30,9 +30,9 @@ mod tests {
 
     #[test]
     fn matrix_add_multiply_scalar() {
-        let m = Matrix::<3, 3>::I();
+        let m = OldMatrixDoNotUse::<3, 3>::I();
         let m2 = 3f32 + &(2f32 * &(&(&m + 1f32) * 5f32));
-        let expected = Matrix::from_cols(&[
+        let expected = OldMatrixDoNotUse::from_cols(&[
             [23., 13., 13.],
             [13., 23., 13.],
             [13., 13., 23.],
@@ -42,16 +42,16 @@ mod tests {
 
     #[test]
     fn matrix_multiplication() {
-        let m1 = Matrix::from_cols(&[
+        let m1 = OldMatrixDoNotUse::from_cols(&[
             [1., 2.],
             [3., 4.],
             [5., 6.],
         ]);
-        let m2 = Matrix::from_cols(&[
+        let m2 = OldMatrixDoNotUse::from_cols(&[
             [1., 2., 3.],
             [4., 5., 6.],
         ]);
-        let expected = Matrix::from_cols(&[
+        let expected = OldMatrixDoNotUse::from_cols(&[
             [22., 28.],
             [49., 64.],
         ]);
@@ -60,19 +60,19 @@ mod tests {
 
     #[test]
     fn matrix_vector_multiplication() {
-        let m = Matrix::from_cols(&[
+        let m = OldMatrixDoNotUse::from_cols(&[
             [1., 2.],
             [3., 4.],
             [5., 6.],
         ]);
-        let v = Vector::from_arr([1., 0., 2.]);
-        let expected = Vector::from_arr([11., 14.]);
+        let v = OldVectorDoNotUse::from_arr([1., 0., 2.]);
+        let expected = OldVectorDoNotUse::from_arr([11., 14.]);
         assert_eq!(&m * &v, expected);
     }
 
     #[test]
     fn vector_indexing() {
-        let v = &Vector::<5>::zero() + 5f32;
+        let v = &OldVectorDoNotUse::<5>::zero() + 5f32;
         for i in 0..5 {
             assert_eq!(v[i], 5.0);
         }
@@ -80,7 +80,7 @@ mod tests {
 
     #[test]
     fn vector_mut_indexing() {
-        let mut v = Vector::<5>::zero();
+        let mut v = OldVectorDoNotUse::<5>::zero();
         for i in 0..5 {
             v[i] = 5. - i as f32;
         }
@@ -91,10 +91,10 @@ mod tests {
 
     #[test]
     fn vector_times_transpose() {
-        let v = Vector::from_arr([1., 2., 3., 4., 5.]);
-        let u = Vector::from_arr([1., 0., 2.]);
+        let v = OldVectorDoNotUse::from_arr([1., 2., 3., 4., 5.]);
+        let u = OldVectorDoNotUse::from_arr([1., 0., 2.]);
 
-        let expected = Matrix::from_cols(&[
+        let expected = OldMatrixDoNotUse::from_cols(&[
             [1., 2., 3., 4., 5.],
             [0., 0., 0., 0., 0.],
             [2., 4., 6., 8., 10.],
