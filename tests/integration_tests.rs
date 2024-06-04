@@ -2,18 +2,17 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 
-use linalg::{Matrix, Vector};
-use model::loss::{MeanSquaredErrorLoss, SoftmaxCrossEntropyLoss};
-use model::Model;
-use layer::connected::FullyConnectedLayer;
-use model::activation::LeakyReLU;
-use model::weights::{Biases, Weights};
+use mylittlemodel::linalg::{Matrix, Vector};
+use mylittlemodel::model::loss::SoftmaxCrossEntropyLoss;
+use mylittlemodel::model::Model;
+use mylittlemodel::layer::connected::FullyConnectedLayer;
+use mylittlemodel::model::activation::LeakyReLU;
+use mylittlemodel::model::weights::{Biases, Weights};
 
-mod layer;
-mod linalg;
-mod model;
+// Run with `cargo test -- --nocapture` to inspect stdout.
 
-fn main() {
+#[test]
+fn kitchen_sink_test() {
     let chain = (
         FullyConnectedLayer::with(
             Weights::<3, 4>::default(),
@@ -32,7 +31,8 @@ fn main() {
         ),
     );
 
-    let mut model = model::manual::ManualModelDoNotUse {
+    // an example fully specified by hand for comparing correctness
+    let mut model = mylittlemodel::model::manual::ManualModelDoNotUse {
         w1: Matrix::from_cols(&[[0.05, 0.1, 0.2], [0.04, 0.1, 0.22], [0.71, 0.03, 0.23]]),
         b1: Vector::from_arr([0.12, 0.23, 0.45]),
         

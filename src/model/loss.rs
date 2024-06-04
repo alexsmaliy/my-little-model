@@ -35,7 +35,7 @@ impl LossFunction for SoftmaxCrossEntropyLoss {
                 // Note minus: cross-entropy is -sum over i of { p(i) * log(q(i)) }.
                 entropy -= target[i] * (output[i].exp() / sum_exp).ln();
             }
-            (entropy, V::zero()) // TODO: dummy errors.
+            (entropy, V::zero()) // TODO: remove dummy errors.
         }
     }
 
