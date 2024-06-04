@@ -3,6 +3,20 @@ use std::ops::{Add, Index, IndexMut, Mul, Neg, Sub};
 
 use super::Matrix;
 
+pub(super) use constant::ConstantVector;
+pub(super) use dense::DenseVector;
+pub(super) use onehot::OneHotVector;
+pub(super) use sparse::SparseVector;
+pub(super) use wrapper::{VectorWrapper, VectorWrapperIterator};
+pub(super) use zero::ZeroVector;
+
+mod constant;
+mod dense;
+mod onehot;
+mod sparse;
+mod wrapper;
+mod zero;
+
 #[derive(Clone, Debug)]
 pub struct Vector<const N: usize>(pub(super) [f32; N]);
 

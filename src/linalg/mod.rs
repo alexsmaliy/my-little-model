@@ -2,6 +2,7 @@ pub use matrix::Matrix; // re-export
 pub use vector::Vector; // re-export
 
 mod matrix;
+mod order;
 mod vector;
 
 //////////////////////////////////////////
