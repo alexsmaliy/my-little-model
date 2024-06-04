@@ -3,12 +3,12 @@ use std::ops::{Add, Index, IndexMut, Mul, Neg, Sub};
 
 use super::Matrix;
 
-pub(super) use constant::ConstantVector;
-pub(super) use dense::DenseVector;
-pub(super) use onehot::OneHotVector;
-pub(super) use sparse::SparseVector;
-pub(super) use wrapper::{VectorWrapper, VectorWrapperIterator};
-pub(super) use zero::ZeroVector;
+#[allow(unused_imports)] pub(super) use constant::ConstantVector;
+#[allow(unused_imports)] pub(super) use dense::DenseVector;
+#[allow(unused_imports)] pub(super) use onehot::OneHotVector;
+#[allow(unused_imports)] pub(super) use sparse::SparseVector;
+#[allow(unused_imports)] pub(super) use wrapper::{VectorWrapper, VectorWrapperIterator};
+#[allow(unused_imports)] pub(super) use zero::ZeroVector;
 
 mod constant;
 mod dense;

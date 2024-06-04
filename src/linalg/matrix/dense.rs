@@ -26,7 +26,7 @@ impl<const R: usize, const C: usize> DenseMatrix<R, C>
     }
 
     // constructor
-    pub fn from_cols(cols: &[[f32; R]; C]) -> Self {
+    pub(super) fn from_cols(cols: &[[f32; R]; C]) -> Self {
         let mut arr = [0f32; R*C];
         for c_ind in 0..C {
             let from = c_ind * R;
@@ -273,6 +273,46 @@ impl<const R: usize, const C: usize, const C2: usize> Mul<&ZeroMatrix<C, C2>> fo
 ///////////////////////////////
 /// DENSE MATRIX MATH IMPLS ///
 ///////////////////////////////
+
+impl<const R: usize, const C: usize> Add<&DenseMatrix<R, C>> for f32 where [(); R*C]: Sized {
+    type Output = DenseMatrix<R, C>;
+
+    fn add(self, _rhs: &DenseMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Add<f32> for &DenseMatrix<R, C> where [(); R*C]: Sized {
+    type Output = DenseMatrix<R, C>;
+
+    fn add(self, _rhs: f32) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Sub<f32> for &DenseMatrix<R, C> where [(); R*C]: Sized {
+    type Output = DenseMatrix<R, C>;
+
+    fn sub(self, _rhs: f32) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Mul<&DenseMatrix<R, C>> for f32 where [(); R*C]: Sized {
+    type Output = DenseMatrix<R, C>;
+
+    fn mul(self, _rhs: &DenseMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Mul<f32> for &DenseMatrix<R, C> where [(); R*C]: Sized {
+    type Output = DenseMatrix<R, C>;
+
+    fn mul(self, _rhs: f32) -> Self::Output {
+        todo!()
+    }
+}
 
 impl<const R: usize, const C: usize> Neg for &DenseMatrix<R, C> where [(); R*C]: Sized {
     type Output = DenseMatrix<R, C>;

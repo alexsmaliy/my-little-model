@@ -32,6 +32,11 @@ impl<const R: usize, const C: usize> MatrixWrapper<R, C> where [(); R*C]: Sized,
     }
 
     // constructor
+    pub fn from_cols(cols: &[[f32; R]; C]) -> Self {
+        Self::Dense(DenseMatrix::from_cols(cols))
+    }
+
+    // constructor
     pub fn sparse() -> Self {
         Self::Sparse(SparseMatrix(Vec::new(), Vec::new(), Order::COLS))
     }

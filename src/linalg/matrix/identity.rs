@@ -241,6 +241,46 @@ impl<const R: usize, const C: usize, const C2: usize> Mul<&ZeroMatrix<C, C2>> fo
 /// DIAGONAL MATRIX MATH IMPLS ///
 //////////////////////////////////
 
+impl<const R: usize, const C: usize> Add<&IdentityMatrix<R, C>> for f32 where [(); R*C]: Sized {
+    type Output = DenseMatrix<R, C>;
+
+    fn add(self, _rhs: &IdentityMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Add<f32> for &IdentityMatrix<R, C> where [(); R*C]: Sized {
+    type Output = DenseMatrix<R, C>;
+
+    fn add(self, _rhs: f32) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Sub<f32> for &IdentityMatrix<R, C> where [(); R*C]: Sized {
+    type Output = DenseMatrix<R, C>;
+
+    fn sub(self, _rhs: f32) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Mul<&IdentityMatrix<R, C>> for f32 where [(); R*C]: Sized {
+    type Output = DiagonalMatrix<R, C>;
+
+    fn mul(self, _rhs: &IdentityMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Mul<f32> for &IdentityMatrix<R, C> where [(); R*C]: Sized {
+    type Output = DiagonalMatrix<R, C>;
+
+    fn mul(self, _rhs: f32) -> Self::Output {
+        todo!()
+    }
+}
+
 impl<const R: usize, const C: usize> Neg for &IdentityMatrix<R, C> where [(); R*C]: Sized {
     type Output = DiagonalMatrix<R, C>;
 

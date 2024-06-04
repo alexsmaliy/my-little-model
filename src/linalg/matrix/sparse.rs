@@ -11,9 +11,9 @@ use super::zero::ZeroMatrix;
 
 #[derive(Clone, Debug)]
 pub struct SparseMatrix<const R: usize, const C: usize>(
-    pub(super) Vec<usize>,
-    pub(super) Vec<f32>,
-    pub(super) Order,
+    #[allow(dead_code)] pub(super) Vec<usize>,
+    #[allow(dead_code)] pub(super) Vec<f32>,
+    #[allow(dead_code)] pub(super) Order,
 );
 
 impl<const R: usize, const C: usize> SparseMatrix<R, C> {
@@ -240,6 +240,46 @@ impl<const R: usize, const C: usize, const C2: usize> Mul<&ZeroMatrix<C, C2>> fo
 ////////////////////////////////
 /// SPARSE MATRIX MATH IMPLS ///
 ////////////////////////////////
+
+impl<const R: usize, const C: usize> Add<&SparseMatrix<R, C>> for f32 where [(); R*C]: Sized {
+    type Output = DenseMatrix<R, C>;
+
+    fn add(self, _rhs: &SparseMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Add<f32> for &SparseMatrix<R, C> where [(); R*C]: Sized {
+    type Output = DenseMatrix<R, C>;
+
+    fn add(self, _rhs: f32) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Sub<f32> for &SparseMatrix<R, C> where [(); R*C]: Sized {
+    type Output = DenseMatrix<R, C>;
+
+    fn sub(self, _rhs: f32) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Mul<&SparseMatrix<R, C>> for f32 where [(); R*C]: Sized {
+    type Output = SparseMatrix<R, C>;
+
+    fn mul(self, _rhs: &SparseMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Mul<f32> for &SparseMatrix<R, C> where [(); R*C]: Sized {
+    type Output = SparseMatrix<R, C>;
+
+    fn mul(self, _rhs: f32) -> Self::Output {
+        todo!()
+    }
+}
 
 impl<const R: usize, const C: usize> Neg for &SparseMatrix<R, C> where [(); R*C]: Sized {
     type Output = SparseMatrix<R, C>;

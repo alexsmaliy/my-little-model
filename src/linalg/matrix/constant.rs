@@ -235,6 +235,30 @@ impl<const R: usize, const C: usize, const C2: usize> Mul<&ZeroMatrix<C, C2>> fo
 /// CONSTANT MATRIX MATH IMPLS ///
 //////////////////////////////////
 
+impl<const R: usize, const C: usize> Add<&ConstantMatrix<R, C>> for f32 where [(); R*C]: Sized {
+    type Output = ConstantMatrix<R, C>;
+
+    fn add(self, _rhs: &ConstantMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Add<f32> for &ConstantMatrix<R, C> where [(); R*C]: Sized {
+    type Output = ConstantMatrix<R, C>;
+
+    fn add(self, _rhs: f32) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Sub<f32> for &ConstantMatrix<R, C> where [(); R*C]: Sized {
+    type Output = ConstantMatrix<R, C>;
+
+    fn sub(self, _rhs: f32) -> Self::Output {
+        todo!()
+    }
+}
+
 impl<const R: usize, const C: usize> Neg for &ConstantMatrix<R, C> where [(); R*C]: Sized {
     type Output = ConstantMatrix<R, C>;
 
