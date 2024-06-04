@@ -5,8 +5,8 @@ pub(super) mod matrix;
 mod order;
 pub(super) mod vector;
 
-pub use matrix::MatrixWrapper;
-pub use vector::VectorWrapper;
+pub use matrix::Matrix;
+pub use vector::Vector;
 
 //////////////////////////////////////////
 /// TESTS OF LINEAR ALGEBRA OPERATIONS ///

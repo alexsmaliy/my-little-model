@@ -5,21 +5,21 @@ pub mod weights;
 
 use std::marker::PhantomData;
 
-use crate::linalg::VectorWrapper;
+use crate::linalg::Vector;
 use crate::layer::ModelLayerChain;
 use loss::LossFunction;
 
 pub struct ModelOutput<const DIM: usize> {
     pub loss: f32,
-    pub errors: VectorWrapper<DIM>,
-    pub output: VectorWrapper<DIM>,
+    pub errors: Vector<DIM>,
+    pub output: Vector<DIM>,
 }
 
 pub struct Model<const IN: usize, const OUT: usize, T, L: ModelLayerChain<IN, OUT, T>, LF: LossFunction> {
     pub layers: L,
-    pub last_input: VectorWrapper<IN>,
-    pub last_output: VectorWrapper<OUT>,
-    pub errors: VectorWrapper<OUT>,
+    pub last_input: Vector<IN>,
+    pub last_output: Vector<OUT>,
+    pub errors: Vector<OUT>,
     pub loss: f32,
     pub loss_function: LF,
 
@@ -30,16 +30,16 @@ impl<const IN: usize, const OUT: usize, T, L: ModelLayerChain<IN, OUT, T>, LF: L
     pub fn new(layers: L, loss_function: LF) -> Self {
         Model {
             layers,
-            last_input: VectorWrapper::zero(),
-            last_output: VectorWrapper::zero(),
-            errors: VectorWrapper::zero(),
+            last_input: Vector::zero(),
+            last_output: Vector::zero(),
+            errors: Vector::zero(),
             loss: 0f32,
             loss_function,
             _ph: PhantomData::<T>,
         }
     }
 
-    pub fn run_once(&mut self, input: &VectorWrapper<IN>, target: &VectorWrapper<OUT>) {
+    pub fn run_once(&mut self, input: &Vector<IN>, target: &Vector<OUT>) {
         let ModelOutput { loss, errors, output } = self.layers.run_once(
             (input, target),
             self.loss_function,

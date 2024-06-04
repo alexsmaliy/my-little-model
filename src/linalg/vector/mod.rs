@@ -7,7 +7,7 @@ use super::OldMatrixDoNotUse;
 #[allow(unused_imports)] pub(super) use dense::DenseVector;
 #[allow(unused_imports)] pub(super) use onehot::OneHotVector;
 #[allow(unused_imports)] pub(super) use sparse::SparseVector;
-#[allow(unused_imports)] pub use wrapper::{VectorWrapper, VectorWrapperIterator};
+#[allow(unused_imports)] pub use wrapper::{Vector, VectorWrapperIterator};
 #[allow(unused_imports)] pub(super) use zero::ZeroVector;
 
 mod constant;

@@ -9,7 +9,7 @@ use super::OldVectorDoNotUse;
 #[allow(unused_imports)] pub(super) use diagonal::DiagonalMatrix;
 #[allow(unused_imports)] pub(super) use identity::IdentityMatrix;
 #[allow(unused_imports)] pub(super) use sparse::SparseMatrix;
-#[allow(unused_imports)] pub use wrapper::MatrixWrapper;
+#[allow(unused_imports)] pub use wrapper::Matrix;
 #[allow(unused_imports)] pub(super) use zero::ZeroMatrix;
 
 mod constant;
@@ -266,20 +266,20 @@ impl<const R: usize, const C: usize> PartialEq for OldMatrixDoNotUse<R, C> where
 mod tests {
     #[test]
     fn matrix_from_cols_multiply() {
-        use super::wrapper::MatrixWrapper;
+        use super::wrapper::Matrix;
 
-        let m1 = MatrixWrapper::from_cols(&[
+        let m1 = Matrix::from_cols(&[
             [1., 2.],
             [3., 4.],
             [5., 6.],
         ]);
 
-        let m2 = MatrixWrapper::from_cols(&[
+        let m2 = Matrix::from_cols(&[
             [1., 2., 3.],
             [4., 5., 6.],
         ]);
 
-        let expected = MatrixWrapper::from_cols(&[
+        let expected = Matrix::from_cols(&[
             [22., 28.],
             [49., 64.],
         ]);
