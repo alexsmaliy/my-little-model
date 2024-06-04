@@ -16,9 +16,7 @@ pub struct DenseMatrix<const R: usize, const C: usize>(
 ) where [(); R*C]: Sized;
 
 impl<const R: usize, const C: usize> DenseMatrix<R, C>
-    where
-        [(); C*R]: Sized,
-        [(); R*C]: Sized,
+    where [(); R*C]: Sized
 {
     // constructor
     pub(super) fn from_arr(arr: [f32; R*C]) -> Self {
@@ -37,7 +35,7 @@ impl<const R: usize, const C: usize> DenseMatrix<R, C>
         DenseMatrix(arr, Order::COLS)
     }
     
-    pub(super) fn T(&self) -> DenseMatrix<C, R> {
+    pub(super) fn T(&self) -> DenseMatrix<C, R> where [(); C*R]: Sized {
         let arr: [f32; C*R] = self.0.to_vec().try_into().unwrap();
         DenseMatrix(arr, -self.1)
     }
@@ -277,8 +275,8 @@ impl<const R: usize, const C: usize, const C2: usize> Mul<&ZeroMatrix<C, C2>> fo
 impl<const R: usize, const C: usize> Add<&DenseMatrix<R, C>> for f32 where [(); R*C]: Sized {
     type Output = DenseMatrix<R, C>;
 
-    fn add(self, _rhs: &DenseMatrix<R, C>) -> Self::Output {
-        todo!()
+    fn add(self, rhs: &DenseMatrix<R, C>) -> Self::Output {
+        DenseMatrix::from_arr(rhs.0.map(|n| n + self))
     }
 }
 
@@ -309,8 +307,8 @@ impl<const R: usize, const C: usize> Mul<&DenseMatrix<R, C>> for f32 where [(); 
 impl<const R: usize, const C: usize> Mul<f32> for &DenseMatrix<R, C> where [(); R*C]: Sized {
     type Output = DenseMatrix<R, C>;
 
-    fn mul(self, _rhs: f32) -> Self::Output {
-        todo!()
+    fn mul(self, rhs: f32) -> Self::Output {
+        DenseMatrix::from_arr(self.0.map(|n| n * rhs))
     }
 }
 
@@ -338,5 +336,49 @@ impl<const R: usize, const C: usize> Display for DenseMatrix<R, C> where [(); R*
             write!(f, "[{}]", arr.map(|n| n.to_string()).join(","))?;
         }
         write!(f, "]")
+    }
+}
+
+mod tests {
+    #[test]
+    fn dense_matrix_multiply() {
+        use super::DenseMatrix;
+
+        let m1 = DenseMatrix::from_cols(&[
+            [1., 2.],
+            [3., 4.],
+            [5., 6.],
+        ]);
+
+        let m2 = DenseMatrix::from_cols(&[
+            [1., 2., 3.],
+            [4., 5., 6.],
+        ]);
+
+        let expected = DenseMatrix::from_cols(&[
+            [22., 28.],
+            [49., 64.],
+        ]);
+
+        assert_eq!(&m1 * &m2, expected);
+    }
+
+    #[test]
+    fn dense_matrix_scalar_add_multiply() {
+        use super::DenseMatrix;
+
+        let m = DenseMatrix::from_cols(&[
+            [1., 2.],
+            [3., 4.],
+            [5., 6.],
+        ]);
+
+        let expected = DenseMatrix::from_cols(&[
+            [12., 14.],
+            [16., 18.],
+            [20., 22.],
+        ]);
+
+        assert_eq!(&(5. + &m) * 2., expected);
     }
 }

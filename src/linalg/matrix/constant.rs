@@ -259,6 +259,22 @@ impl<const R: usize, const C: usize> Sub<f32> for &ConstantMatrix<R, C> where [(
     }
 }
 
+impl<const R: usize, const C: usize> Mul<&ConstantMatrix<R, C>> for f32 where [(); R*C]: Sized {
+    type Output = ConstantMatrix<R, C>;
+
+    fn mul(self, _rhs: &ConstantMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Mul<f32> for &ConstantMatrix<R, C> where [(); R*C]: Sized {
+    type Output = ConstantMatrix<R, C>;
+
+    fn mul(self, _rhs: f32) -> Self::Output {
+        todo!()
+    }
+}
+
 impl<const R: usize, const C: usize> Neg for &ConstantMatrix<R, C> where [(); R*C]: Sized {
     type Output = ConstantMatrix<R, C>;
 

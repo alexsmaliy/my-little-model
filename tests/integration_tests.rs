@@ -3,7 +3,7 @@
 #![feature(generic_const_exprs)]
 
 use mylittlemodel::linalg::{Matrix, Vector};
-use mylittlemodel::model::loss::SoftmaxCrossEntropyLoss;
+use mylittlemodel::model::loss::MeanSquaredErrorLoss;
 use mylittlemodel::model::Model;
 use mylittlemodel::layer::connected::FullyConnectedLayer;
 use mylittlemodel::model::activation::LeakyReLU;
@@ -94,7 +94,7 @@ fn kitchen_sink_test() {
     let input = Vector::from_arr([1., 2., 3.]);
     let target = Vector::from_arr([0., 0., 1.]);
 
-    let mut model = Model::new(chain, SoftmaxCrossEntropyLoss);
+    let mut model = Model::new(chain, MeanSquaredErrorLoss);
     // println!("{}\t{}", model.layers.0.W, model.layers.0.b);
     // println!("{}\t{}", model.layers.1.W, model.layers.1.b);
     // println!("{}\t{}", model.layers.2.W, model.layers.2.b);

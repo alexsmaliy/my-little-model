@@ -30,6 +30,7 @@ pub trait ModelLayerChain<const IN: usize, const OUT: usize, T> {
     ) -> ModelOutput<OUT>;
 }
 
+// This is prime target for a macro.
 impl<
     const A: usize,
     const B: usize,

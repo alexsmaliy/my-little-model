@@ -275,3 +275,9 @@ impl<const R: usize, const C: usize> PartialEq for MatrixWrapper<R, C> where [()
         }
     }
 }
+
+impl<const R: usize, const C: usize> From<[f32; R*C]> for MatrixWrapper<R, C> where [(); R*C]: Sized {
+    fn from(arr: [f32; R*C]) -> Self {
+        MatrixWrapper::Dense(DenseMatrix::from_arr(arr))
+    }
+}

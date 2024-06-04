@@ -4,13 +4,13 @@ use std::ops::{Add, Mul, Sub};
 use super::order::Order;
 use super::Vector;
 
-// pub(super) use constant::ConstantMatrix;
-// pub(super) use dense::DenseMatrix;
-// pub(super) use diagonal::DiagonalMatrix;
-// pub(super) use identity::IdentityMatrix;
-// pub(super) use sparse::SparseMatrix;
-// pub(super) use wrapper::MatrixWrapper;
-// pub(super) use zero::ZeroMatrix;
+#[allow(unused_imports)] pub(super) use constant::ConstantMatrix;
+#[allow(unused_imports)] pub(super) use dense::DenseMatrix;
+#[allow(unused_imports)] pub(super) use diagonal::DiagonalMatrix;
+#[allow(unused_imports)] pub(super) use identity::IdentityMatrix;
+#[allow(unused_imports)] pub(super) use sparse::SparseMatrix;
+#[allow(unused_imports)] pub use wrapper::MatrixWrapper;
+#[allow(unused_imports)] pub(super) use zero::ZeroMatrix;
 
 mod constant;
 mod dense;
@@ -19,19 +19,6 @@ mod identity;
 mod sparse;
 mod wrapper;
 mod zero;
-
-mod test {
-    #[test]
-    fn dense_matrix_wrapper_multiply() {
-        use super::dense::DenseMatrix;
-        use super::wrapper::MatrixWrapper;
-        
-        let m1 = MatrixWrapper::Dense(DenseMatrix::<2, 3>([1., 2., 3., 4., 5., 6.], super::Order::COLS));
-        let m2 = MatrixWrapper::Dense(DenseMatrix::<3, 2>([1., 2., 3., 4., 5., 6.], super::Order::COLS));
-        let expected = MatrixWrapper::Dense(DenseMatrix::<2, 2>([22., 28., 49., 64.], super::Order::COLS));
-        assert_eq!(&m1 * &m2, expected);
-    }
-}
 
 #[derive(Clone, Debug)]
 pub struct Matrix<const R: usize, const C: usize>(pub(super) [f32; R*C])
@@ -273,5 +260,30 @@ impl<const R: usize, const C: usize> From<[[f32; R]; C]> for Matrix<R, C> where 
 impl<const R: usize, const C: usize> PartialEq for Matrix<R, C> where [(); R*C]: Sized {
     fn eq(&self, other: &Self) -> bool {
         self.0.eq(&other.0)
+    }
+}
+
+mod tests {
+    #[test]
+    fn matrix_from_cols_multiply() {
+        use super::wrapper::MatrixWrapper;
+
+        let m1 = MatrixWrapper::from_cols(&[
+            [1., 2.],
+            [3., 4.],
+            [5., 6.],
+        ]);
+
+        let m2 = MatrixWrapper::from_cols(&[
+            [1., 2., 3.],
+            [4., 5., 6.],
+        ]);
+
+        let expected = MatrixWrapper::from_cols(&[
+            [22., 28.],
+            [49., 64.],
+        ]);
+
+        assert_eq!(&m1 * &m2, expected);
     }
 }

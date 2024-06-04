@@ -35,7 +35,7 @@ impl<const IN: usize, const OUT: usize, T, L: ModelLayerChain<IN, OUT, T>, LF: L
             errors: Vector::zero(),
             loss: 0f32,
             loss_function,
-            _ph: PhantomData::<T>
+            _ph: PhantomData::<T>,
         }
     }
 

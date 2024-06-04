@@ -5,6 +5,8 @@ mod matrix;
 mod order;
 mod vector;
 
+pub use matrix::MatrixWrapper;
+
 //////////////////////////////////////////
 /// TESTS OF LINEAR ALGEBRA OPERATIONS ///
 //////////////////////////////////////////

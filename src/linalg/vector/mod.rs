@@ -17,6 +17,20 @@ mod sparse;
 mod wrapper;
 mod zero;
 
+trait CanDotProduct<V> {
+    fn dot(&self, other: V) -> f32;
+}
+
+trait CanMap {
+    type Output;
+    fn map(&self, f: impl Fn(f32) -> f32) -> Self::Output;
+}
+
+trait CanOuterProduct<V> {
+    type Output;
+    fn outer(&self, other: V) -> Self::Output;
+}
+
 #[derive(Clone, Debug)]
 pub struct Vector<const N: usize>(pub(super) [f32; N]);
 
