@@ -1,5 +1,5 @@
 use std::fmt::Display;
-use std::ops::Mul;
+use std::ops::{Add, Mul, Neg, Sub};
 
 use super::dense::DenseMatrix;
 use super::diagonal::DiagonalMatrix;
@@ -21,6 +21,134 @@ impl<const R: usize, const C: usize> ConstantMatrix<R, C> {
 impl<const R: usize, const C: usize> PartialEq for ConstantMatrix<R, C> where [(); R*C]: Sized {
     fn eq(&self, other: &Self) -> bool {
         self.0 == other.0
+    }
+}
+
+/////////////////////////////////
+/// CONSTANT MATRIX ADD IMPLS ///
+/////////////////////////////////
+
+impl<const R: usize, const C: usize> Add<&ConstantMatrix<R, C>> for &ConstantMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = ConstantMatrix<R, C>;
+
+    fn add(self, _rhs: &ConstantMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Add<&DenseMatrix<R, C>> for &ConstantMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = DenseMatrix<R, C>;
+
+    fn add(self, _rhs: &DenseMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Add<&DiagonalMatrix<R, C>> for &ConstantMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = ConstantMatrix<R, C>;
+
+    fn add(self, _rhs: &DiagonalMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Add<&IdentityMatrix<R, C>> for &ConstantMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = ConstantMatrix<R, C>;
+
+    fn add(self, _rhs: &IdentityMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Add<&SparseMatrix<R, C>> for &ConstantMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = SparseMatrix<R, C>;
+
+    fn add(self, _rhs: &SparseMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Add<&ZeroMatrix<R, C>> for &ConstantMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = ZeroMatrix<R, C>;
+
+    fn add(self, _rhs: &ZeroMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+/////////////////////////////////
+/// CONSTANT MATRIX SUB IMPLS ///
+/////////////////////////////////
+
+impl<const R: usize, const C: usize> Sub<&ConstantMatrix<R, C>> for &ConstantMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = ConstantMatrix<R, C>;
+
+    fn sub(self, _rhs: &ConstantMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Sub<&DenseMatrix<R, C>> for &ConstantMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = DenseMatrix<R, C>;
+
+    fn sub(self, _rhs: &DenseMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Sub<&DiagonalMatrix<R, C>> for &ConstantMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = ConstantMatrix<R, C>;
+
+    fn sub(self, _rhs: &DiagonalMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Sub<&IdentityMatrix<R, C>> for &ConstantMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = ConstantMatrix<R, C>;
+
+    fn sub(self, _rhs: &IdentityMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Sub<&SparseMatrix<R, C>> for &ConstantMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = SparseMatrix<R, C>;
+
+    fn sub(self, _rhs: &SparseMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Sub<&ZeroMatrix<R, C>> for &ConstantMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = ZeroMatrix<R, C>;
+
+    fn sub(self, _rhs: &ZeroMatrix<R, C>) -> Self::Output {
+        todo!()
     }
 }
 
@@ -99,6 +227,18 @@ impl<const R: usize, const C: usize, const C2: usize> Mul<&ZeroMatrix<C, C2>> fo
     type Output = ZeroMatrix<R, C2>;
 
     fn mul(self, _rhs: &ZeroMatrix<C, C2>) -> Self::Output {
+        todo!()
+    }
+}
+
+//////////////////////////////////
+/// CONSTANT MATRIX MATH IMPLS ///
+//////////////////////////////////
+
+impl<const R: usize, const C: usize> Neg for &ConstantMatrix<R, C> where [(); R*C]: Sized {
+    type Output = ConstantMatrix<R, C>;
+
+    fn neg(self) -> Self::Output {
         todo!()
     }
 }

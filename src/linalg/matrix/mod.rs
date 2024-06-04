@@ -4,13 +4,13 @@ use std::ops::{Add, Mul, Sub};
 use super::order::Order;
 use super::Vector;
 
-pub(super) use constant::ConstantMatrix;
-pub(super) use dense::DenseMatrix;
-pub(super) use diagonal::DiagonalMatrix;
-pub(super) use identity::IdentityMatrix;
-pub(super) use sparse::SparseMatrix;
-pub(super) use wrapper::MatrixWrapper;
-pub(super) use zero::ZeroMatrix;
+// pub(super) use constant::ConstantMatrix;
+// pub(super) use dense::DenseMatrix;
+// pub(super) use diagonal::DiagonalMatrix;
+// pub(super) use identity::IdentityMatrix;
+// pub(super) use sparse::SparseMatrix;
+// pub(super) use wrapper::MatrixWrapper;
+// pub(super) use zero::ZeroMatrix;
 
 mod constant;
 mod dense;
@@ -26,9 +26,9 @@ mod test {
         use super::dense::DenseMatrix;
         use super::wrapper::MatrixWrapper;
         
-        let m1 = MatrixWrapper::Dense(DenseMatrix::<2, 3>([1., 2., 3., 4., 5., 6.], super::Order::COLUMNS));
-        let m2 = MatrixWrapper::Dense(DenseMatrix::<3, 2>([1., 2., 3., 4., 5., 6.], super::Order::COLUMNS));
-        let expected = MatrixWrapper::Dense(DenseMatrix::<2, 2>([22., 28., 49., 64.], super::Order::COLUMNS));
+        let m1 = MatrixWrapper::Dense(DenseMatrix::<2, 3>([1., 2., 3., 4., 5., 6.], super::Order::COLS));
+        let m2 = MatrixWrapper::Dense(DenseMatrix::<3, 2>([1., 2., 3., 4., 5., 6.], super::Order::COLS));
+        let expected = MatrixWrapper::Dense(DenseMatrix::<2, 2>([22., 28., 49., 64.], super::Order::COLS));
         assert_eq!(&m1 * &m2, expected);
     }
 }

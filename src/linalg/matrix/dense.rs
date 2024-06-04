@@ -1,5 +1,5 @@
 use std::fmt::Display;
-use std::ops::Mul;
+use std::ops::{Add, Mul, Neg, Sub};
 
 use super::Order;
 
@@ -20,6 +20,23 @@ impl<const R: usize, const C: usize> DenseMatrix<R, C>
         [(); C*R]: Sized,
         [(); R*C]: Sized,
 {
+    // constructor
+    pub(super) fn from_arr(arr: [f32; R*C]) -> Self {
+        DenseMatrix(arr, Order::COLS)
+    }
+
+    // constructor
+    pub fn from_cols(cols: &[[f32; R]; C]) -> Self {
+        let mut arr = [0f32; R*C];
+        for c_ind in 0..C {
+            let from = c_ind * R;
+            let to = from + R;
+            let col = &cols[c_ind];
+            arr[from..to].copy_from_slice(col);
+        }
+        DenseMatrix(arr, Order::COLS)
+    }
+    
     pub(super) fn T(&self) -> DenseMatrix<C, R> {
         let arr: [f32; C*R] = self.0.to_vec().try_into().unwrap();
         DenseMatrix(arr, -self.1)
@@ -29,6 +46,134 @@ impl<const R: usize, const C: usize> DenseMatrix<R, C>
 impl<const R: usize, const C: usize> PartialEq for DenseMatrix<R, C> where [(); R*C]: Sized {
     fn eq(&self, other: &Self) -> bool {
         self.0 == other.0 && self.1 == other.1 //TODO: handle transposed args.
+    }
+}
+
+//////////////////////////////
+/// DENSE MATRIX ADD IMPLS ///
+//////////////////////////////
+
+impl<const R: usize, const C: usize> Add<&ConstantMatrix<R, C>> for &DenseMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = DenseMatrix<R, C>;
+
+    fn add(self, _rhs: &ConstantMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Add<&DenseMatrix<R, C>> for &DenseMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = DenseMatrix<R, C>;
+
+    fn add(self, _rhs: &DenseMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Add<&DiagonalMatrix<R, C>> for &DenseMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = DenseMatrix<R, C>;
+
+    fn add(self, _rhs: &DiagonalMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Add<&IdentityMatrix<R, C>> for &DenseMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = DenseMatrix<R, C>;
+
+    fn add(self, _rhs: &IdentityMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Add<&SparseMatrix<R, C>> for &DenseMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = DenseMatrix<R, C>;
+
+    fn add(self, _rhs: &SparseMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Add<&ZeroMatrix<R, C>> for &DenseMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = DenseMatrix<R, C>;
+
+    fn add(self, _rhs: &ZeroMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+//////////////////////////////
+/// DENSE MATRIX SUB IMPLS ///
+//////////////////////////////
+
+impl<const R: usize, const C: usize> Sub<&ConstantMatrix<R, C>> for &DenseMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = DenseMatrix<R, C>;
+
+    fn sub(self, _rhs: &ConstantMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Sub<&DenseMatrix<R, C>> for &DenseMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = DenseMatrix<R, C>;
+
+    fn sub(self, _rhs: &DenseMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Sub<&DiagonalMatrix<R, C>> for &DenseMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = DenseMatrix<R, C>;
+
+    fn sub(self, _rhs: &DiagonalMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Sub<&IdentityMatrix<R, C>> for &DenseMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = DenseMatrix<R, C>;
+
+    fn sub(self, _rhs: &IdentityMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Sub<&SparseMatrix<R, C>> for &DenseMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = DenseMatrix<R, C>;
+
+    fn sub(self, _rhs: &SparseMatrix<R, C>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Sub<&ZeroMatrix<R, C>> for &DenseMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = DenseMatrix<R, C>;
+
+    fn sub(self, _rhs: &ZeroMatrix<R, C>) -> Self::Output {
+        todo!()
     }
 }
 
@@ -121,6 +266,18 @@ impl<const R: usize, const C: usize, const C2: usize> Mul<&ZeroMatrix<C, C2>> fo
     type Output = ZeroMatrix<R, C2>;
 
     fn mul(self, _rhs: &ZeroMatrix<C, C2>) -> Self::Output {
+        todo!()
+    }
+}
+
+///////////////////////////////
+/// DENSE MATRIX MATH IMPLS ///
+///////////////////////////////
+
+impl<const R: usize, const C: usize> Neg for &DenseMatrix<R, C> where [(); R*C]: Sized {
+    type Output = DenseMatrix<R, C>;
+
+    fn neg(self) -> Self::Output {
         todo!()
     }
 }
