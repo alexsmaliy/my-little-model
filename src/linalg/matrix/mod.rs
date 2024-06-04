@@ -1,13 +1,30 @@
 use std::fmt::Display;
 use std::ops::{Add, Mul, Sub};
 
+use super::order::Order;
 use super::Vector;
 
-#[derive(Debug)]
+#[allow(unused_imports)] pub(super) use constant::ConstantMatrix;
+#[allow(unused_imports)] pub(super) use dense::DenseMatrix;
+#[allow(unused_imports)] pub(super) use diagonal::DiagonalMatrix;
+#[allow(unused_imports)] pub(super) use identity::IdentityMatrix;
+#[allow(unused_imports)] pub(super) use sparse::SparseMatrix;
+#[allow(unused_imports)] pub use wrapper::MatrixWrapper;
+#[allow(unused_imports)] pub(super) use zero::ZeroMatrix;
+
+mod constant;
+mod dense;
+mod diagonal;
+mod identity;
+mod sparse;
+mod wrapper;
+mod zero;
+
+#[derive(Clone, Debug)]
 pub struct Matrix<const R: usize, const C: usize>(pub(super) [f32; R*C])
     where [(); R*C]: Sized;
 
-impl<const R: usize, const C: usize> Matrix<R, C> where [(); R*C]: {
+impl<const R: usize, const C: usize> Matrix<R, C> where [(); R*C]: Sized {
     pub fn zero() -> Self {
         Matrix([0f32; R*C])
     }
@@ -30,7 +47,7 @@ impl<const R: usize, const C: usize> Matrix<R, C> where [(); R*C]: {
     /**
         Matrix transpose (eagerly).
      */
-    pub fn T(&self) -> Matrix<C, R> where [(); C*R]: {
+    pub fn T(&self) -> Matrix<C, R> where [(); C*R]: Sized {
         let mut arr = [0f32; C*R];
         for i in 0..(C * R) {
             arr[i] = self.0[(i % C) * R + (i / C)];
@@ -39,7 +56,7 @@ impl<const R: usize, const C: usize> Matrix<R, C> where [(); R*C]: {
     }
 }
 
-impl<const D: usize> Matrix<D, D> where [(); D*D]: {
+impl<const D: usize> Matrix<D, D> where [(); D*D]: Sized {
     #[allow(non_snake_case)]
     pub fn I() -> Self {
         let mut arr = [0f32; D*D];
@@ -65,7 +82,7 @@ impl<const D: usize> Matrix<D, D> where [(); D*D]: {
 /// &Matrix + &Matrix ///
 /////////////////////////
 
-impl<const R: usize, const C: usize> Add for &Matrix<R, C> where [(); R*C]: {
+impl<const R: usize, const C: usize> Add for &Matrix<R, C> where [(); R*C]: Sized {
     type Output = Matrix<R, C>;
 
     fn add(self, rhs: Self) -> Self::Output {
@@ -83,7 +100,7 @@ impl<const R: usize, const C: usize> Add for &Matrix<R, C> where [(); R*C]: {
 /// f32 + &Matrix ///
 /////////////////////
 
-impl<const R: usize, const C: usize> Add<&Matrix<R, C>> for f32 where [(); R*C]: {
+impl<const R: usize, const C: usize> Add<&Matrix<R, C>> for f32 where [(); R*C]: Sized {
     type Output = Matrix<R, C>;
 
     fn add(self, rhs: &Matrix<R, C>) -> Self::Output {
@@ -99,7 +116,7 @@ impl<const R: usize, const C: usize> Add<&Matrix<R, C>> for f32 where [(); R*C]:
 /// &Matrix + f32 ///
 /////////////////////
 
-impl<const R: usize, const C: usize> Add<f32> for &Matrix<R, C> where [(); R*C]: {
+impl<const R: usize, const C: usize> Add<f32> for &Matrix<R, C> where [(); R*C]: Sized {
     type Output = Matrix<R, C>;
 
     fn add(self, rhs: f32) -> Self::Output {
@@ -115,7 +132,7 @@ impl<const R: usize, const C: usize> Add<f32> for &Matrix<R, C> where [(); R*C]:
 /// &Matrix - &Matrix ///
 /////////////////////////
 
-impl<const R: usize, const C: usize> Sub for &Matrix<R, C> where [(); R*C]: {
+impl<const R: usize, const C: usize> Sub for &Matrix<R, C> where [(); R*C]: Sized {
     type Output = Matrix<R, C>;
 
     fn sub(self, rhs: Self) -> Self::Output {
@@ -135,7 +152,7 @@ impl<const R: usize, const C: usize> Sub for &Matrix<R, C> where [(); R*C]: {
 
 impl<const R: usize, const C: usize, const C2: usize> Mul<&Matrix<C, C2>> for &Matrix<R, C>
     where
-        [(); R*C]: Sized,  // boilerplate
+        [(); R*C]:  Sized, // boilerplate
         [(); C*C2]: Sized, // boilerplate
         [(); R*C2]: Sized, // boilerplate
 {
@@ -161,7 +178,7 @@ impl<const R: usize, const C: usize, const C2: usize> Mul<&Matrix<C, C2>> for &M
 /// &Matrix * &Vector ///
 /////////////////////////
 
-impl<const R: usize, const C: usize> Mul<&Vector<C>> for &Matrix<R, C> where [(); R*C]: {
+impl<const R: usize, const C: usize> Mul<&Vector<C>> for &Matrix<R, C> where [(); R*C]: Sized {
     type Output = Vector<R>;
 
     fn mul(self, rhs: &Vector<C>) -> Self::Output {
@@ -182,7 +199,7 @@ impl<const R: usize, const C: usize> Mul<&Vector<C>> for &Matrix<R, C> where [()
 /// f32 * &Matrix ///
 /////////////////////
 
-impl<const R: usize, const C: usize> Mul<&Matrix<R, C>> for f32 where [(); R*C]: {
+impl<const R: usize, const C: usize> Mul<&Matrix<R, C>> for f32 where [(); R*C]: Sized {
     type Output = Matrix<R, C>;
 
     fn mul(self, rhs: &Matrix<R, C>) -> Self::Output {
@@ -198,7 +215,7 @@ impl<const R: usize, const C: usize> Mul<&Matrix<R, C>> for f32 where [(); R*C]:
 /// &Matrix * f32 ///
 /////////////////////
 
-impl<const R: usize, const C: usize> Mul<f32> for &Matrix<R, C> where [(); R*C]: {
+impl<const R: usize, const C: usize> Mul<f32> for &Matrix<R, C> where [(); R*C]: Sized {
     type Output = Matrix<R, C>;
 
     fn mul(self, rhs: f32) -> Self::Output {
@@ -214,7 +231,7 @@ impl<const R: usize, const C: usize> Mul<f32> for &Matrix<R, C> where [(); R*C]:
 /// UTILITY IMPLS ///
 /////////////////////
 
-impl<const R: usize, const C: usize> Display for Matrix<R, C> where [(); R*C]: {
+impl<const R: usize, const C: usize> Display for Matrix<R, C> where [(); R*C]: Sized {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "[")?;
         for r in 0..R {
@@ -234,14 +251,39 @@ impl<const R: usize, const C: usize> From<[f32; R*C]> for Matrix<R, C> {
     }
 }
 
-impl<const R: usize, const C: usize> From<[[f32; R]; C]> for Matrix<R, C> where [(); R*C]: {
+impl<const R: usize, const C: usize> From<[[f32; R]; C]> for Matrix<R, C> where [(); R*C]: Sized {
     fn from(cols: [[f32; R]; C]) -> Self {
         Self::from_cols(&cols)
     }
 }
 
-impl<const R: usize, const C: usize> PartialEq for Matrix<R, C> where [(); R*C]: {
+impl<const R: usize, const C: usize> PartialEq for Matrix<R, C> where [(); R*C]: Sized {
     fn eq(&self, other: &Self) -> bool {
         self.0.eq(&other.0)
+    }
+}
+
+mod tests {
+    #[test]
+    fn matrix_from_cols_multiply() {
+        use super::wrapper::MatrixWrapper;
+
+        let m1 = MatrixWrapper::from_cols(&[
+            [1., 2.],
+            [3., 4.],
+            [5., 6.],
+        ]);
+
+        let m2 = MatrixWrapper::from_cols(&[
+            [1., 2., 3.],
+            [4., 5., 6.],
+        ]);
+
+        let expected = MatrixWrapper::from_cols(&[
+            [22., 28.],
+            [49., 64.],
+        ]);
+
+        assert_eq!(&m1 * &m2, expected);
     }
 }

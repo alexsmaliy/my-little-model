@@ -3,6 +3,34 @@ use std::ops::{Add, Index, IndexMut, Mul, Neg, Sub};
 
 use super::Matrix;
 
+#[allow(unused_imports)] pub(super) use constant::ConstantVector;
+#[allow(unused_imports)] pub(super) use dense::DenseVector;
+#[allow(unused_imports)] pub(super) use onehot::OneHotVector;
+#[allow(unused_imports)] pub(super) use sparse::SparseVector;
+#[allow(unused_imports)] pub(super) use wrapper::{VectorWrapper, VectorWrapperIterator};
+#[allow(unused_imports)] pub(super) use zero::ZeroVector;
+
+mod constant;
+mod dense;
+mod onehot;
+mod sparse;
+mod wrapper;
+mod zero;
+
+trait CanDotProduct<V> {
+    fn dot(&self, other: V) -> f32;
+}
+
+trait CanMap {
+    type Output;
+    fn map(&self, f: impl Fn(f32) -> f32) -> Self::Output;
+}
+
+trait CanOuterProduct<V> {
+    type Output;
+    fn outer(&self, other: V) -> Self::Output;
+}
+
 #[derive(Clone, Debug)]
 pub struct Vector<const N: usize>(pub(super) [f32; N]);
 

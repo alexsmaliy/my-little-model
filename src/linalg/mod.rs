@@ -2,7 +2,10 @@ pub use matrix::Matrix; // re-export
 pub use vector::Vector; // re-export
 
 mod matrix;
+mod order;
 mod vector;
+
+pub use matrix::MatrixWrapper;
 
 //////////////////////////////////////////
 /// TESTS OF LINEAR ALGEBRA OPERATIONS ///
