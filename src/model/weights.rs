@@ -2,7 +2,8 @@ use num_traits::cast::AsPrimitive;
 use rand::thread_rng;
 use rand::distributions::{Distribution, Uniform};
 
-use crate::linalg::{Matrix, Vector};
+use crate::linalg::vector::Vector;
+use crate::linalg::matrix::Matrix;
 
 pub enum Biases<const DIM: usize> {
     Zeros,

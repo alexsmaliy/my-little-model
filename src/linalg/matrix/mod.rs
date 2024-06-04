@@ -2,14 +2,14 @@ use std::fmt::Display;
 use std::ops::{Add, Mul, Sub};
 
 use super::order::Order;
-use super::Vector;
+use super::OldVectorDoNotUse;
 
 #[allow(unused_imports)] pub(super) use constant::ConstantMatrix;
 #[allow(unused_imports)] pub(super) use dense::DenseMatrix;
 #[allow(unused_imports)] pub(super) use diagonal::DiagonalMatrix;
 #[allow(unused_imports)] pub(super) use identity::IdentityMatrix;
 #[allow(unused_imports)] pub(super) use sparse::SparseMatrix;
-#[allow(unused_imports)] pub use wrapper::MatrixWrapper;
+#[allow(unused_imports)] pub use wrapper::Matrix;
 #[allow(unused_imports)] pub(super) use zero::ZeroMatrix;
 
 mod constant;
@@ -21,16 +21,16 @@ mod wrapper;
 mod zero;
 
 #[derive(Clone, Debug)]
-pub struct Matrix<const R: usize, const C: usize>(pub(super) [f32; R*C])
+pub struct OldMatrixDoNotUse<const R: usize, const C: usize>(pub(super) [f32; R*C])
     where [(); R*C]: Sized;
 
-impl<const R: usize, const C: usize> Matrix<R, C> where [(); R*C]: Sized {
+impl<const R: usize, const C: usize> OldMatrixDoNotUse<R, C> where [(); R*C]: Sized {
     pub fn zero() -> Self {
-        Matrix([0f32; R*C])
+        OldMatrixDoNotUse([0f32; R*C])
     }
 
     pub fn from_arr(arr: [f32; R*C]) -> Self {
-        Matrix(arr)
+        OldMatrixDoNotUse(arr)
     }
 
     pub fn from_cols(cols: &[[f32; R]; C]) -> Self {
@@ -41,29 +41,29 @@ impl<const R: usize, const C: usize> Matrix<R, C> where [(); R*C]: Sized {
             let col = &cols[c_ind];
             arr[from..to].copy_from_slice(col);
         }
-        Matrix(arr)
+        OldMatrixDoNotUse(arr)
     }
 
     /**
         Matrix transpose (eagerly).
      */
-    pub fn T(&self) -> Matrix<C, R> where [(); C*R]: Sized {
+    pub fn T(&self) -> OldMatrixDoNotUse<C, R> where [(); C*R]: Sized {
         let mut arr = [0f32; C*R];
         for i in 0..(C * R) {
             arr[i] = self.0[(i % C) * R + (i / C)];
         }
-        Matrix(arr)
+        OldMatrixDoNotUse(arr)
     }
 }
 
-impl<const D: usize> Matrix<D, D> where [(); D*D]: Sized {
+impl<const D: usize> OldMatrixDoNotUse<D, D> where [(); D*D]: Sized {
     #[allow(non_snake_case)]
     pub fn I() -> Self {
         let mut arr = [0f32; D*D];
         for i in 0..D {
             arr[i * D + i] = 1f32;
         }
-        Matrix(arr)
+        OldMatrixDoNotUse(arr)
     }
 
     /**
@@ -74,7 +74,7 @@ impl<const D: usize> Matrix<D, D> where [(); D*D]: Sized {
         for i in 0..D {
             arr[i * D + i] = main_diag[i];
         }
-        Matrix(arr)
+        OldMatrixDoNotUse(arr)
     }
 }
 
@@ -82,8 +82,8 @@ impl<const D: usize> Matrix<D, D> where [(); D*D]: Sized {
 /// &Matrix + &Matrix ///
 /////////////////////////
 
-impl<const R: usize, const C: usize> Add for &Matrix<R, C> where [(); R*C]: Sized {
-    type Output = Matrix<R, C>;
+impl<const R: usize, const C: usize> Add for &OldMatrixDoNotUse<R, C> where [(); R*C]: Sized {
+    type Output = OldMatrixDoNotUse<R, C>;
 
     fn add(self, rhs: Self) -> Self::Output {
         let mut arr = [0f32; R*C];
@@ -92,7 +92,7 @@ impl<const R: usize, const C: usize> Add for &Matrix<R, C> where [(); R*C]: Size
             .map(|(n, m)| n + m)
             .enumerate()
             .for_each(|(i, x)| arr[i] = x);
-        Matrix(arr)
+        OldMatrixDoNotUse(arr)
     }
 }
 
@@ -100,15 +100,15 @@ impl<const R: usize, const C: usize> Add for &Matrix<R, C> where [(); R*C]: Size
 /// f32 + &Matrix ///
 /////////////////////
 
-impl<const R: usize, const C: usize> Add<&Matrix<R, C>> for f32 where [(); R*C]: Sized {
-    type Output = Matrix<R, C>;
+impl<const R: usize, const C: usize> Add<&OldMatrixDoNotUse<R, C>> for f32 where [(); R*C]: Sized {
+    type Output = OldMatrixDoNotUse<R, C>;
 
-    fn add(self, rhs: &Matrix<R, C>) -> Self::Output {
+    fn add(self, rhs: &OldMatrixDoNotUse<R, C>) -> Self::Output {
         let mut arr = [0f32; R*C];
         rhs.0.iter()
            .enumerate()
            .for_each(|(i, x)| arr[i] = x + self);
-        Matrix(arr)
+        OldMatrixDoNotUse(arr)
     }
 }
 
@@ -116,15 +116,15 @@ impl<const R: usize, const C: usize> Add<&Matrix<R, C>> for f32 where [(); R*C]:
 /// &Matrix + f32 ///
 /////////////////////
 
-impl<const R: usize, const C: usize> Add<f32> for &Matrix<R, C> where [(); R*C]: Sized {
-    type Output = Matrix<R, C>;
+impl<const R: usize, const C: usize> Add<f32> for &OldMatrixDoNotUse<R, C> where [(); R*C]: Sized {
+    type Output = OldMatrixDoNotUse<R, C>;
 
     fn add(self, rhs: f32) -> Self::Output {
         let mut arr = [0f32; R*C];
         self.0.iter()
             .enumerate()
             .for_each(|(i, x)| arr[i] = x + rhs);
-        Matrix(arr)
+        OldMatrixDoNotUse(arr)
     }
 }
 
@@ -132,8 +132,8 @@ impl<const R: usize, const C: usize> Add<f32> for &Matrix<R, C> where [(); R*C]:
 /// &Matrix - &Matrix ///
 /////////////////////////
 
-impl<const R: usize, const C: usize> Sub for &Matrix<R, C> where [(); R*C]: Sized {
-    type Output = Matrix<R, C>;
+impl<const R: usize, const C: usize> Sub for &OldMatrixDoNotUse<R, C> where [(); R*C]: Sized {
+    type Output = OldMatrixDoNotUse<R, C>;
 
     fn sub(self, rhs: Self) -> Self::Output {
         let mut arr = [0f32; R*C];
@@ -142,7 +142,7 @@ impl<const R: usize, const C: usize> Sub for &Matrix<R, C> where [(); R*C]: Size
             .map(|(n, m)| n - m)
             .enumerate()
             .for_each(|(i, x)| arr[i] = x);
-        Matrix(arr)
+        OldMatrixDoNotUse(arr)
     }
 }
 
@@ -150,15 +150,15 @@ impl<const R: usize, const C: usize> Sub for &Matrix<R, C> where [(); R*C]: Size
 /// &Matrix * &Matrix ///
 /////////////////////////
 
-impl<const R: usize, const C: usize, const C2: usize> Mul<&Matrix<C, C2>> for &Matrix<R, C>
+impl<const R: usize, const C: usize, const C2: usize> Mul<&OldMatrixDoNotUse<C, C2>> for &OldMatrixDoNotUse<R, C>
     where
         [(); R*C]:  Sized, // boilerplate
         [(); C*C2]: Sized, // boilerplate
         [(); R*C2]: Sized, // boilerplate
 {
-    type Output = Matrix<R, C2>;
+    type Output = OldMatrixDoNotUse<R, C2>;
 
-    fn mul(self, rhs: &Matrix<C, C2>) -> Self::Output {
+    fn mul(self, rhs: &OldMatrixDoNotUse<C, C2>) -> Self::Output {
         let mut arr = [0f32; R*C2];
         for i in 0..(R * C2) {
             let from = (i / R) * C;
@@ -170,7 +170,7 @@ impl<const R: usize, const C: usize, const C2: usize> Mul<&Matrix<C, C2>> for &M
                 .sum();
             arr[i] = x;
         }
-        Matrix(arr)
+        OldMatrixDoNotUse(arr)
     }
 }
 
@@ -178,10 +178,10 @@ impl<const R: usize, const C: usize, const C2: usize> Mul<&Matrix<C, C2>> for &M
 /// &Matrix * &Vector ///
 /////////////////////////
 
-impl<const R: usize, const C: usize> Mul<&Vector<C>> for &Matrix<R, C> where [(); R*C]: Sized {
-    type Output = Vector<R>;
+impl<const R: usize, const C: usize> Mul<&OldVectorDoNotUse<C>> for &OldMatrixDoNotUse<R, C> where [(); R*C]: Sized {
+    type Output = OldVectorDoNotUse<R>;
 
-    fn mul(self, rhs: &Vector<C>) -> Self::Output {
+    fn mul(self, rhs: &OldVectorDoNotUse<C>) -> Self::Output {
         let mut arr = [0f32; R];
         for i in 0..R {
             let x: f32 = rhs.0
@@ -191,7 +191,7 @@ impl<const R: usize, const C: usize> Mul<&Vector<C>> for &Matrix<R, C> where [()
                 .sum();
             arr[i] = x;
         }
-        Vector(arr)
+        OldVectorDoNotUse(arr)
     }
 } 
 
@@ -199,15 +199,15 @@ impl<const R: usize, const C: usize> Mul<&Vector<C>> for &Matrix<R, C> where [()
 /// f32 * &Matrix ///
 /////////////////////
 
-impl<const R: usize, const C: usize> Mul<&Matrix<R, C>> for f32 where [(); R*C]: Sized {
-    type Output = Matrix<R, C>;
+impl<const R: usize, const C: usize> Mul<&OldMatrixDoNotUse<R, C>> for f32 where [(); R*C]: Sized {
+    type Output = OldMatrixDoNotUse<R, C>;
 
-    fn mul(self, rhs: &Matrix<R, C>) -> Self::Output {
+    fn mul(self, rhs: &OldMatrixDoNotUse<R, C>) -> Self::Output {
         let mut arr = [0f32; R*C];
         rhs.0.iter()
            .enumerate()
            .for_each(|(i, x)| arr[i] = x * self);
-        Matrix(arr)
+        OldMatrixDoNotUse(arr)
     }
 }
 
@@ -215,15 +215,15 @@ impl<const R: usize, const C: usize> Mul<&Matrix<R, C>> for f32 where [(); R*C]:
 /// &Matrix * f32 ///
 /////////////////////
 
-impl<const R: usize, const C: usize> Mul<f32> for &Matrix<R, C> where [(); R*C]: Sized {
-    type Output = Matrix<R, C>;
+impl<const R: usize, const C: usize> Mul<f32> for &OldMatrixDoNotUse<R, C> where [(); R*C]: Sized {
+    type Output = OldMatrixDoNotUse<R, C>;
 
     fn mul(self, rhs: f32) -> Self::Output {
         let mut arr = [0f32; R*C];
         self.0.iter()
             .enumerate()
             .for_each(|(i, x)| arr[i] = x * rhs);
-        Matrix(arr)
+        OldMatrixDoNotUse(arr)
     }
 }
 
@@ -231,7 +231,7 @@ impl<const R: usize, const C: usize> Mul<f32> for &Matrix<R, C> where [(); R*C]:
 /// UTILITY IMPLS ///
 /////////////////////
 
-impl<const R: usize, const C: usize> Display for Matrix<R, C> where [(); R*C]: Sized {
+impl<const R: usize, const C: usize> Display for OldMatrixDoNotUse<R, C> where [(); R*C]: Sized {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "[")?;
         for r in 0..R {
@@ -245,19 +245,19 @@ impl<const R: usize, const C: usize> Display for Matrix<R, C> where [(); R*C]: S
     }
 }
 
-impl<const R: usize, const C: usize> From<[f32; R*C]> for Matrix<R, C> {
+impl<const R: usize, const C: usize> From<[f32; R*C]> for OldMatrixDoNotUse<R, C> {
     fn from(arr: [f32; R*C]) -> Self {
-        Matrix(arr)
+        OldMatrixDoNotUse(arr)
     }
 }
 
-impl<const R: usize, const C: usize> From<[[f32; R]; C]> for Matrix<R, C> where [(); R*C]: Sized {
+impl<const R: usize, const C: usize> From<[[f32; R]; C]> for OldMatrixDoNotUse<R, C> where [(); R*C]: Sized {
     fn from(cols: [[f32; R]; C]) -> Self {
         Self::from_cols(&cols)
     }
 }
 
-impl<const R: usize, const C: usize> PartialEq for Matrix<R, C> where [(); R*C]: Sized {
+impl<const R: usize, const C: usize> PartialEq for OldMatrixDoNotUse<R, C> where [(); R*C]: Sized {
     fn eq(&self, other: &Self) -> bool {
         self.0.eq(&other.0)
     }
@@ -266,20 +266,20 @@ impl<const R: usize, const C: usize> PartialEq for Matrix<R, C> where [(); R*C]:
 mod tests {
     #[test]
     fn matrix_from_cols_multiply() {
-        use super::wrapper::MatrixWrapper;
+        use super::wrapper::Matrix;
 
-        let m1 = MatrixWrapper::from_cols(&[
+        let m1 = Matrix::from_cols(&[
             [1., 2.],
             [3., 4.],
             [5., 6.],
         ]);
 
-        let m2 = MatrixWrapper::from_cols(&[
+        let m2 = Matrix::from_cols(&[
             [1., 2., 3.],
             [4., 5., 6.],
         ]);
 
-        let expected = MatrixWrapper::from_cols(&[
+        let expected = Matrix::from_cols(&[
             [22., 28.],
             [49., 64.],
         ]);

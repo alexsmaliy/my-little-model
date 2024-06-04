@@ -56,7 +56,7 @@ impl<const IN: usize, const OUT: usize, F: ActivationFunction> ModelLayer<IN, OU
         self.s1 = &y * &(&self.w2.T() * &self.s2);
          */
         let x = self.n.map(self.activation_function.get_df()).into();
-        let y = Matrix::diag(&x);
+        let y = Matrix::diag(x);
         self.s = &y * upstream_Wᵀs;
         self.Wᵀs = &self.W.T() * &self.s;
     }

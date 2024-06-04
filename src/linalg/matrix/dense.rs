@@ -1,6 +1,8 @@
 use std::fmt::Display;
 use std::ops::{Add, Mul, Neg, Sub};
 
+use crate::linalg::vector::DenseVector;
+
 use super::Order;
 
 use super::constant::ConstantMatrix;
@@ -19,7 +21,7 @@ impl<const R: usize, const C: usize> DenseMatrix<R, C>
     where [(); R*C]: Sized
 {
     // constructor
-    pub(super) fn from_arr(arr: [f32; R*C]) -> Self {
+    pub(crate) fn from_arr(arr: [f32; R*C]) -> Self {
         DenseMatrix(arr, Order::COLS)
     }
 
@@ -130,8 +132,14 @@ impl<const R: usize, const C: usize> Sub<&DenseMatrix<R, C>> for &DenseMatrix<R,
 {
     type Output = DenseMatrix<R, C>;
 
-    fn sub(self, _rhs: &DenseMatrix<R, C>) -> Self::Output {
-        todo!()
+    fn sub(self, rhs: &DenseMatrix<R, C>) -> Self::Output {
+        let mut arr = [0f32; R*C];
+        self.0.iter()
+            .zip(rhs.0.iter())
+            .map(|(n, m)| n - m)
+            .enumerate()
+            .for_each(|(i, x)| arr[i] = x);
+        DenseMatrix::from_arr(arr)
     }
 }
 
@@ -265,6 +273,25 @@ impl<const R: usize, const C: usize, const C2: usize> Mul<&ZeroMatrix<C, C2>> fo
 
     fn mul(self, _rhs: &ZeroMatrix<C, C2>) -> Self::Output {
         todo!()
+    }
+}
+
+impl<const R: usize, const C: usize> Mul<&DenseVector<C>> for &DenseMatrix<R, C>
+    where [(); R*C]: Sized
+{
+    type Output = DenseVector<R>;
+
+    fn mul(self, rhs: &DenseVector<C>) -> Self::Output {
+        let mut arr = [0f32; R];
+        for i in 0..R {
+            let x: f32 = rhs.0
+                .into_iter()
+                .enumerate()
+                .map(|(j, x)| x * self.0[j * R + i])
+                .sum();
+            arr[i] = x;
+        }
+        DenseVector::from_arr(arr)
     }
 }
 

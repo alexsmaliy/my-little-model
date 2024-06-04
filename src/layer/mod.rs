@@ -79,7 +79,7 @@ impl<
         let (n_last, df_last) = (self.2.linear_output(), self.2.df());
 
         // This doesn't depend on choice of L.
-        let da_dn = Matrix::diag(&n_last.map(df_last).into());
+        let da_dn = Matrix::diag(n_last.map(df_last).into());
         // This depends on choice of L.
         let dL_da = dL_da(target, &model_output);
         // let dL_da = -2f32 * &errors;
