@@ -242,3 +242,9 @@ impl<const D: usize> Index<usize> for ConstantVector<D> {
         &self.0
     }
 }
+
+impl<const D: usize> From<ConstantVector<D>> for f32 {
+    fn from(v: ConstantVector<D>) -> Self {
+        v.0
+    }
+}

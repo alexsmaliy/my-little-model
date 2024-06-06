@@ -211,11 +211,13 @@ impl<const D: usize, const D2: usize> CanOuterProduct<&DenseVector<D2>> for &Den
     type Output = DenseMatrix<D, D2>;
 
     fn outer(self, other: &DenseVector<D2>) -> Self::Output {
-        let mut arr = [0f32; D*D2];
+        let mut v = Vec::with_capacity(D*D2);
         for col in 0..D2 {
-            arr[col*D..(col+1)*D].copy_from_slice(&(self * other[col]).data);
+            let scalar = other[col];
+            let x = self.data.into_iter().map(|x| x * scalar);
+            v.extend(x);
         }
-        DenseMatrix::from_arr(arr)
+        DenseMatrix::from_boxed_slice(v.into_boxed_slice())
     }
 }
 

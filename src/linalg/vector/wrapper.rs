@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::marker::PhantomData;
 use std::ops::{Add, Index, IndexMut, Mul, Sub};
 
 use crate::linalg::Matrix;
@@ -23,6 +24,15 @@ impl<const D: usize> Vector<D> {
     // constructor
     pub fn from_arr(arr: [f32; D]) -> Self {
         Self::Dense(DenseVector::from_arr(arr))
+    }
+
+    // constructor
+    pub fn from_boxed_slice(slice: Box<[f32]>) -> Self {
+        assert_eq!(slice.len(), D);
+        Self::Dense(DenseVector {
+            data: slice,
+            size_marker: PhantomData,
+        })
     }
 
     // constructor

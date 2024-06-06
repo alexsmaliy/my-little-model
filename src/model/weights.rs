@@ -22,11 +22,9 @@ impl<const DIM: usize> Biases<DIM> {
     fn lazy_uniform_random(lo: f32, hi: f32) -> Vector<DIM> {
         let rng = thread_rng();
         let mut uniform = Uniform::<f32>::new(lo, hi).sample_iter(rng);
-        let mut arr: [f32; DIM] = [0f32; DIM];
-        for i in 0..DIM {
-            arr[i] = uniform.next().unwrap();
-        }
-        Vector::from_arr(arr)
+        let f = |_| uniform.next().unwrap();
+        let data = (0..DIM).map(f).collect();
+        Vector::from_boxed_slice(data)
     }
 }
 
@@ -65,12 +63,9 @@ impl<const IN: usize, const OUT: usize> Weights<IN, OUT> where [(); OUT*IN]: Siz
     fn lazy_uniform_random(lo: f32, hi: f32) -> Matrix<OUT, IN> {
         let rng = thread_rng();
         let mut uniform = Uniform::<f32>::new(lo, hi).sample_iter(rng);
-        let mut arr: [f32; OUT*IN] = [0f32; OUT*IN];
-        for i in 0..OUT*IN {
-            arr[i] = uniform.next().unwrap();
-        }
-        // uniform.collect::<Vec<_>>().try_into().unwrap(); // TODO: this panics.
-        Matrix::from_arr(arr)
+        let f = |_| uniform.next().unwrap();
+        let data = (0..OUT*IN).map(f).collect();
+        Matrix::from_boxed_slice(data)
     }
 }
 
