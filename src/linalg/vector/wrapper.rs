@@ -148,6 +148,17 @@ impl<const D: usize> Vector<D> {
             V::Zero(v) => v.sum_of_squares(),
         }
     }
+
+    pub(crate) fn to_dense(self) -> DenseVector<D> {
+        use Vector as V;
+        match self {
+            V::Constant(_v) => todo!(),
+            V::Dense(v) => v,
+            V::OneHot(_v) => todo!(),
+            V::Sparse(_v) => todo!(),
+            V::Zero(_v) => todo!(),
+        }
+    }
 }
 
 impl<const D: usize> Add<&Vector<D>> for &Vector<D> {
@@ -390,19 +401,6 @@ impl<const D: usize> PartialEq for Vector<D> {
             (V::Sparse(v1), V::Sparse(v2)) => v1 == v2,
             (V::Zero(v1), V::Zero(v2)) => v1 == v2,
             _ => false, // TODO: equality between mixed flavors.
-        }
-    }
-}
-
-impl<const D: usize> From<Vector<D>> for [f32; D] {
-    fn from(vector: Vector<D>) -> Self {
-        use Vector as V;
-        match vector {
-            V::Constant(_v) => todo!(),
-            V::Dense(v) => v.0,
-            V::OneHot(_v) => todo!(),
-            V::Sparse(_v) => todo!(),
-            V::Zero(_v) => todo!(),
         }
     }
 }

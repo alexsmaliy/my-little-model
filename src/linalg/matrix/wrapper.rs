@@ -61,8 +61,8 @@ impl<const R: usize, const C: usize> Matrix<R, C> where [(); R*C]: Sized {
 }
 
 impl<const D: usize> Matrix<D, D> where [(); D*D]: Sized {
-    pub fn diag(main_diag: [f32; D]) -> Self {
-        Self::Diagonal(DiagonalMatrix(main_diag))
+    pub fn diag(main_diag: Vector<D>) -> Self {
+        Self::Diagonal(main_diag.into())
     }
     
     pub fn I() -> Self {

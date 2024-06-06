@@ -1,17 +1,21 @@
-use std::ops::{Add, Index, IndexMut, Mul, Sub};
+use std::{marker::PhantomData, ops::{Add, Index, IndexMut, Mul, Sub}};
 
 use crate::linalg::matrix::DenseMatrix;
 
 use super::{CanDotProduct, CanMap, CanOuterProduct, ConstantVector, OneHotVector, SparseVector, ZeroVector};
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct DenseVector<const D: usize>(
-    pub(crate) [f32; D],
-);
+pub struct DenseVector<const D: usize> {
+    pub(crate) data: Box<[f32]>,
+    pub(crate) size_marker: PhantomData<[f32; D]>,
+}
 
 impl<const D: usize> DenseVector<D> {
     pub(crate) fn from_arr(arr: [f32; D]) -> Self {
-        Self(arr)
+        Self {
+            data: Box::new(arr),
+            size_marker: PhantomData,
+        }
     }
 
     pub(super) fn sum(&self) -> f32 {
@@ -19,7 +23,7 @@ impl<const D: usize> DenseVector<D> {
     }
 
     pub(super) fn sum_of_squares(&self) -> f32 {
-        self.0.iter().fold(0f32, |acc, x| acc + x*x)
+        self.data.iter().fold(0f32, |acc, x| acc + x * x)
     }
 }
 
@@ -27,7 +31,11 @@ impl<const D: usize> CanMap for &DenseVector<D> {
     type Output = DenseVector<D>;
 
     fn map(&self, f: impl Fn(f32) -> f32) -> Self::Output {
-        DenseVector(self.0.clone().map(f))
+        let mapped = self.data.iter().copied().map(f).collect::<Box<[f32]>>();
+        DenseVector {
+            data: mapped,
+            size_marker: PhantomData,
+        }
     }
 }
 
@@ -55,13 +63,14 @@ impl<const D: usize> Add<&DenseVector<D>> for &DenseVector<D> {
     type Output = DenseVector<D>;
 
     fn add(self, rhs: &DenseVector<D>) -> Self::Output {
-        let mut arr = [0f32; D];
-        self.0.iter()
-            .zip(rhs.0.iter())
-            .map(|(n, m)| n + m)
-            .enumerate()
-            .for_each(|(i, x)| arr[i] = x);
-        DenseVector(arr)
+        let f = |(a, b)| a + b;
+        let us = self.data.iter().copied();
+        let them = rhs.data.iter().copied();
+        let mapped = us.zip(them).map(f).collect::<Box<[f32]>>();
+        DenseVector {
+            data: mapped,
+            size_marker: PhantomData,
+        }
     }
 }
 
@@ -113,13 +122,14 @@ impl<const D: usize> Sub<&DenseVector<D>> for &DenseVector<D> {
     type Output = DenseVector<D>;
 
     fn sub(self, rhs: &DenseVector<D>) -> Self::Output {
-        let mut arr = [0f32; D];
-        self.0.iter()
-            .zip(rhs.0.iter())
-            .map(|(n, m)| n - m)
-            .enumerate()
-            .for_each(|(i, x)| arr[i] = x);
-        DenseVector(arr)
+        let f = |(a, b)| a - b;
+        let us = self.data.iter().copied();
+        let them = rhs.data.iter().copied();
+        let mapped = us.zip(them).map(f).collect::<Box<[f32]>>();
+        DenseVector {
+            data: mapped,
+            size_marker: PhantomData,
+        }
     }
 }
 
@@ -203,7 +213,7 @@ impl<const D: usize, const D2: usize> CanOuterProduct<&DenseVector<D2>> for &Den
     fn outer(self, other: &DenseVector<D2>) -> Self::Output {
         let mut arr = [0f32; D*D2];
         for col in 0..D2 {
-            arr[col*D..(col+1)*D].copy_from_slice(&(self * other[col]).0);
+            arr[col*D..(col+1)*D].copy_from_slice(&(self * other[col]).data);
         }
         DenseMatrix::from_arr(arr)
     }
@@ -247,11 +257,13 @@ impl<const D: usize> Mul<f32> for &DenseVector<D> {
     type Output = DenseVector<D>;
 
     fn mul(self, rhs: f32) -> Self::Output {
-        let mut arr = [0f32; D];
-        self.0.iter()
-           .enumerate()
-           .for_each(|(i, x)| arr[i] = x * rhs);
-        DenseVector(arr)
+        let f = |x| x * rhs;
+        let us = self.data.iter().copied();
+        let mapped = us.map(f).collect::<Box<[f32]>>();
+        DenseVector {
+            data: mapped,
+            size_marker: PhantomData,
+        }
     }
 }
 
@@ -263,12 +275,12 @@ impl<const D: usize> Index<usize> for DenseVector<D> {
     type Output = f32;
 
     fn index(&self, index: usize) -> &Self::Output {
-        &self.0[index]
+        &self.data[index]
     }
 }
 
 impl<const D: usize> IndexMut<usize> for DenseVector<D> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.0[index]
+        &mut self.data[index]
     }
 }
