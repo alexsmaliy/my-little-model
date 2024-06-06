@@ -1,4 +1,5 @@
 use std::fmt::Display;
+use std::marker::PhantomData;
 use std::ops::{Add, Mul, Neg, Sub};
 
 use crate::linalg::vector::DenseVector;
@@ -12,17 +13,22 @@ use super::sparse::SparseMatrix;
 use super::zero::ZeroMatrix;
 
 #[derive(Clone, Debug)]
-pub struct DenseMatrix<const R: usize, const C: usize>(
-    pub(super) [f32; R*C],
-    pub(super) Order,
-) where [(); R*C]: Sized;
+pub struct DenseMatrix<const R: usize, const C: usize> where [(); R*C]: Sized {
+    pub(super) data: Box<[f32]>,
+    pub(super) order: Order,
+    pub(super) size_marker: PhantomData<[[f32; R]; C]>,
+}
 
 impl<const R: usize, const C: usize> DenseMatrix<R, C>
     where [(); R*C]: Sized
 {
     // constructor
     pub(crate) fn from_arr(arr: [f32; R*C]) -> Self {
-        DenseMatrix(arr, Order::COLS)
+        DenseMatrix {
+            data: Box::new(arr),
+            order: Order::COLS,
+            size_marker: PhantomData,
+        }
     }
 
     // constructor
@@ -34,18 +40,25 @@ impl<const R: usize, const C: usize> DenseMatrix<R, C>
             let col = &cols[c_ind];
             arr[from..to].copy_from_slice(col);
         }
-        DenseMatrix(arr, Order::COLS)
+        DenseMatrix {
+            data: Box::new(arr),
+            order: Order::COLS,
+            size_marker: PhantomData,
+        }
     }
     
     pub(super) fn T(&self) -> DenseMatrix<C, R> where [(); C*R]: Sized {
-        let arr: [f32; C*R] = self.0.to_vec().try_into().unwrap();
-        DenseMatrix(arr, -self.1)
+        DenseMatrix {
+            data: self.data.clone(),
+            order: Order::ROWS,
+            size_marker: PhantomData,
+        }
     }
 }
 
 impl<const R: usize, const C: usize> PartialEq for DenseMatrix<R, C> where [(); R*C]: Sized {
     fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0 && self.1 == other.1 //TODO: handle transposed args.
+        self.data == other.data && self.order == other.order // TODO: handle transposed args.
     }
 }
 
@@ -133,13 +146,15 @@ impl<const R: usize, const C: usize> Sub<&DenseMatrix<R, C>> for &DenseMatrix<R,
     type Output = DenseMatrix<R, C>;
 
     fn sub(self, rhs: &DenseMatrix<R, C>) -> Self::Output {
-        let mut arr = [0f32; R*C];
-        self.0.iter()
-            .zip(rhs.0.iter())
-            .map(|(n, m)| n - m)
-            .enumerate()
-            .for_each(|(i, x)| arr[i] = x);
-        DenseMatrix::from_arr(arr)
+        let f = |(a, b)| a - b;
+        let us = self.data.iter().copied();
+        let them = rhs.data.iter().copied();
+        let mapped = us.zip(them).map(f).collect::<Box<[f32]>>();
+        DenseMatrix {
+            data: mapped,
+            order: self.order,
+            size_marker: PhantomData,
+        }
     }
 }
 
@@ -210,18 +225,32 @@ impl<const R: usize, const C: usize, const C2: usize> Mul<&DenseMatrix<C, C2>> f
 
     fn mul(self, rhs: &DenseMatrix<C, C2>) -> Self::Output {
         // TODO: handle transposed args.
-        let mut arr = [0f32; R*C2];
-        for i in 0..(R * C2) {
+        let product = (0..R*C2).map(|i| {
             let from = (i / R) * C;
             let to = from + C;
-            let x: f32 = rhs.0[from..to]
-                .into_iter()
-                .enumerate()
-                .map(|(j, x)| x * self.0[j * R + i % R])
-                .sum();
-            arr[i] = x;
+            rhs.data[from..to].into_iter()
+               .enumerate()
+               .map(|(j, x)| x * self.data[j * R + i % R])
+               .sum()
+        }).collect();
+        DenseMatrix {
+            data: product,
+            order: self.order,
+            size_marker: PhantomData,
         }
-        DenseMatrix(arr, self.1)
+
+        // let mut arr = [0f32; R*C2];
+        // for i in 0..(R * C2) {
+        //     let from = (i / R) * C;
+        //     let to = from + C;
+        //     let x: f32 = rhs.0[from..to]
+        //         .into_iter()
+        //         .enumerate()
+        //         .map(|(j, x)| x * self.0[j * R + i % R])
+        //         .sum();
+        //     arr[i] = x;
+        // }
+        // DenseMatrix(arr, self.1)
     }
 }
 
@@ -282,16 +311,17 @@ impl<const R: usize, const C: usize> Mul<&DenseVector<C>> for &DenseMatrix<R, C>
     type Output = DenseVector<R>;
 
     fn mul(self, rhs: &DenseVector<C>) -> Self::Output {
-        let mut arr = [0f32; R];
-        for i in 0..R {
-            let x: f32 = rhs.0
-                .into_iter()
-                .enumerate()
-                .map(|(j, x)| x * self.0[j * R + i])
-                .sum();
-            arr[i] = x;
+        let product = (0..R).map(|i| {
+            rhs.data.into_iter()
+               .enumerate()
+               .map(|(j, x)| x * self.data[j * R + i])
+               .sum()
+        }).collect();
+
+        DenseVector {
+            data: product,
+            size_marker: PhantomData,
         }
-        DenseVector::from_arr(arr)
     }
 }
 
@@ -303,7 +333,13 @@ impl<const R: usize, const C: usize> Add<&DenseMatrix<R, C>> for f32 where [(); 
     type Output = DenseMatrix<R, C>;
 
     fn add(self, rhs: &DenseMatrix<R, C>) -> Self::Output {
-        DenseMatrix::from_arr(rhs.0.map(|n| n + self))
+        let f = |x| x + self;
+        let data = rhs.data.iter().map(f).collect();
+        DenseMatrix {
+            data,
+            order: rhs.order,
+            size_marker: PhantomData,
+        }
     }
 }
 
@@ -335,7 +371,13 @@ impl<const R: usize, const C: usize> Mul<f32> for &DenseMatrix<R, C> where [(); 
     type Output = DenseMatrix<R, C>;
 
     fn mul(self, rhs: f32) -> Self::Output {
-        DenseMatrix::from_arr(self.0.map(|n| n * rhs))
+        let f = |x| x * rhs;
+        let data = self.data.iter().map(f).collect();
+        DenseMatrix {
+            data,
+            order: self.order,
+            size_marker: PhantomData,
+        }
     }
 }
 
@@ -358,7 +400,7 @@ impl<const R: usize, const C: usize> Display for DenseMatrix<R, C> where [(); R*
         for r in 0..R {
             let mut arr = [0f32; C];
             for c in 0..C {
-                arr[c] = self.0[c*R+r];
+                arr[c] = self.data[c*R+r];
             }
             write!(f, "[{}]", arr.map(|n| n.to_string()).join(","))?;
         }
