@@ -15,17 +15,17 @@ use mylittlemodel::model::weights::{Biases, Weights};
 fn kitchen_sink_test() {
     let chain = (
         FullyConnectedLayer::with(
-            Weights::<3, 4>::default(),
+            Weights::<3, 50>::default(),
             Biases::default(),
             LeakyReLU { slope_lt0: 0.2, slope_gte0: 1.0 },
         ),
         FullyConnectedLayer::with(
-            Weights::<4, 4>::default(),
+            Weights::<50, 50>::default(),
             Biases::default(),
             LeakyReLU { slope_lt0: 0.1, slope_gte0: 0.8 },
         ),
         FullyConnectedLayer::with(
-            Weights::<4, 3>::default(),
+            Weights::<50, 3>::default(),
             Biases::default(),
             LeakyReLU { slope_lt0: 0.15, slope_gte0: 0.9 },
         ),

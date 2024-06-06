@@ -32,6 +32,16 @@ impl<const R: usize, const C: usize> DenseMatrix<R, C>
     }
 
     // constructor
+    pub(crate) fn from_boxed_slice(slice: Box<[f32]>) -> Self {
+        assert_eq!(slice.len(), R*C);
+        DenseMatrix {
+            data: slice,
+            order: Order::COLS,
+            size_marker: PhantomData,
+        }
+    }
+
+    // constructor
     pub(super) fn from_cols(cols: &[[f32; R]; C]) -> Self {
         let mut arr = [0f32; R*C];
         for c_ind in 0..C {

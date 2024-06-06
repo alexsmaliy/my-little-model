@@ -1,3 +1,4 @@
+use std::marker::PhantomData;
 use std::ops::{Add, Mul, Neg, Sub};
 
 use crate::linalg::vector::Vector;
@@ -29,6 +30,28 @@ impl<const R: usize, const C: usize> Matrix<R, C> where [(); R*C]: Sized {
     // constructor
     pub fn from_arr(arr: [f32; R*C]) -> Self {
         Self::Dense(DenseMatrix::from_arr(arr))
+    }
+
+    // constructor
+    pub(crate) fn from_boxed_slice(slice: Box<[f32]>) -> Self {
+        Self::Dense(DenseMatrix::from_boxed_slice(slice))
+    }
+
+    // constructor
+    pub fn from_vector(v: Vector<{R*C}>) -> Self {
+        use Matrix as M;
+        use Vector as V;
+        match v {
+            V::Constant(v) => M::Constant(ConstantMatrix(v.into())),
+            V::Dense(v) => M::Dense(DenseMatrix {
+                data: v.data,
+                order: Order::COLS,
+                size_marker: PhantomData,
+            }),
+            V::OneHot(_v) => todo!(),
+            V::Sparse(_v) => todo!(),
+            V::Zero(_) => M::Zero(ZeroMatrix(0f32)),
+        }
     }
 
     // constructor
