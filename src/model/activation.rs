@@ -3,7 +3,7 @@ pub trait ActivationFunction {
     fn get_df(&self) -> impl Fn(f32) -> f32 + 'static;
 }
 
-pub struct Identity {}
+pub struct Identity;
 
 impl ActivationFunction for Identity {
     fn get_f(&self) -> impl Fn(f32) -> f32 + 'static {

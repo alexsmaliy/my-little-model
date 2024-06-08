@@ -27,22 +27,18 @@ impl<const D: usize> Vector<D> {
     }
 
     // constructor
-    pub fn from_boxed_slice(slice: Box<[f32]>) -> Self {
-        assert_eq!(slice.len(), D);
-        Self::Dense(DenseVector {
-            data: slice,
-            size_marker: PhantomData,
-        })
+    pub(crate) fn from_boxed_slice(slice: Box<[f32]>) -> Self {
+        Self::Dense(DenseVector::from_boxed_slice(slice))
     }
 
     // constructor
-    pub fn from_fun(f: impl Fn() -> f32) -> Self {
-        Self::Dense(DenseVector::from_arr([0f32; D].map(|_| f())))
+    pub fn from_fun(f: impl Fn(usize) -> f32) -> Self {
+        Self::Dense(DenseVector::from_fun(f))
     }
 
     // constructor
     pub fn one_hot(i: usize) -> Self {
-        Self::OneHot(OneHotVector { zero: 0f32, one: 1f32, index: i })
+        Self::OneHot(OneHotVector::at_index(i))
     }
 
     // constructor

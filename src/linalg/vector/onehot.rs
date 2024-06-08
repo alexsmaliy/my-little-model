@@ -12,12 +12,22 @@ pub struct OneHotVector<const D: usize> {
 }
 
 impl<const D: usize> OneHotVector<D> {
+    // constructor
+    pub fn at_index(index: usize) -> Self {
+        assert!(index < D);
+        OneHotVector {
+            zero: 0f32,
+            one: 1f32,
+            index,
+        }
+    }
+
     pub(super) fn sum(&self) -> f32 {
-        todo!()
+        1f32
     }
 
     pub(super) fn sum_of_squares(&self) -> f32 {
-        todo!()
+        1f32
     }
 }
 
@@ -167,9 +177,9 @@ impl<const D: usize> CanDotProduct<&ZeroVector<D>> for &OneHotVector<D> {
     }
 }
 
-//////////////////////////////////////
-/// CONSTANT VEC DOT PRODUCT IMPLS ///
-//////////////////////////////////////
+////////////////////////////////////////
+/// CONSTANT VEC OUTER PRODUCT IMPLS ///
+////////////////////////////////////////
 
 impl<const D: usize, const D2: usize> CanOuterProduct<&ConstantVector<D2>> for &OneHotVector<D>
     where [(); D*D2]: Sized

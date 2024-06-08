@@ -31,10 +31,13 @@ impl<const R: usize, const C: usize> DiagonalMatrix<R, C>
     pub(super) fn T(&self) -> DiagonalMatrix<C, R> {
         let copy = self.diagonal_data.iter().copied()
             .chain(std::iter::repeat(0f32))
-            .take(C)
-            .collect::<Box<[f32]>>();
+            .take(C);
+
+        let mut container = Vec::with_capacity(C*R);
+        container.extend(copy);
+
         DiagonalMatrix {
-            diagonal_data: copy,
+            diagonal_data: container.into_boxed_slice(),
             size_marker: PhantomData,
         }
     }
@@ -265,9 +268,13 @@ impl<const R: usize, const C: usize> Mul<&DenseVector<C>> for &DiagonalMatrix<R,
         let f = |(x, y)| x * y;
         let us = self.diagonal_data.iter();
         let them = rhs.data.iter();
-        let data = us.zip(them).take(R).map(f).collect();
+
+        let mut container = Vec::with_capacity(R);
+        let mapped = us.zip(them).take(R).map(f);
+        container.extend(mapped);
+
         DenseVector {
-            data,
+            data: container.into_boxed_slice(),
             size_marker: PhantomData,
         }
     }

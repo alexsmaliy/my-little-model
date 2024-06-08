@@ -21,10 +21,13 @@ impl<const DIM: usize> Biases<DIM> {
 
     fn lazy_uniform_random(lo: f32, hi: f32) -> Vector<DIM> {
         let rng = thread_rng();
-        let mut uniform = Uniform::<f32>::new(lo, hi).sample_iter(rng);
+        let mut uniform = Uniform::new(lo, hi).sample_iter(rng);
         let f = |_| uniform.next().unwrap();
-        let data = (0..DIM).map(f).collect();
-        Vector::from_boxed_slice(data)
+
+        let mut container = Vec::with_capacity(DIM);
+        container.extend((0..DIM).map(f));
+
+        Vector::from_boxed_slice(container.into_boxed_slice())
     }
 }
 
