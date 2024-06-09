@@ -2,7 +2,7 @@ use std::ops::{Add, Index, Mul, Sub};
 
 use crate::linalg::matrix::DenseMatrix;
 
-use super::{CanDotProduct, CanMap, CanOuterProduct, DenseVector, OneHotVector, SparseVector, ZeroVector};
+use super::{CanDotProduct, CanAppend, CanMap, CanOuterProduct, DenseVector, OneHotVector, SparseVector, ZeroVector};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ConstantVector<const D: usize>(
@@ -15,6 +15,13 @@ impl<const D: usize> ConstantVector<D> {
     }
 
     pub(super) fn sum_of_squares(&self) -> f32 {
+        todo!()
+    }
+}
+
+impl<const D: usize> CanAppend for &ConstantVector<D> where [(); D+1]: Sized {
+    type Output = DenseVector<{D+1}>;
+    fn append(&self, _extra_val: f32) -> Self::Output {
         todo!()
     }
 }

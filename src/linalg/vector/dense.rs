@@ -2,7 +2,7 @@ use std::{marker::PhantomData, ops::{Add, Index, IndexMut, Mul, Sub}};
 
 use crate::linalg::matrix::DenseMatrix;
 
-use super::{CanDotProduct, CanMap, CanOuterProduct, ConstantVector, OneHotVector, SparseVector, ZeroVector};
+use super::{CanDotProduct, CanAppend, CanMap, CanOuterProduct, ConstantVector, OneHotVector, SparseVector, ZeroVector};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct DenseVector<const D: usize> {
@@ -38,6 +38,13 @@ impl<const D: usize> DenseVector<D> {
 
     pub(super) fn sum_of_squares(&self) -> f32 {
         self.data.iter().copied().map(|n| <f32>::powi(n, 2)).sum()
+    }
+}
+
+impl<const D: usize> CanAppend for &DenseVector<D> where [(); D+1]: Sized {
+    type Output = DenseVector<{D+1}>;
+    fn append(&self, _extra_val: f32) -> Self::Output {
+        todo!()
     }
 }
 

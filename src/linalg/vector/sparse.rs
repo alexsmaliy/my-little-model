@@ -4,7 +4,7 @@ use ahash::RandomState;
 
 use crate::linalg::matrix::DenseMatrix;
 
-use super::{CanDotProduct, CanMap, CanOuterProduct, ConstantVector, DenseVector, OneHotVector, ZeroVector};
+use super::{CanDotProduct, CanAppend, CanMap, CanOuterProduct, ConstantVector, DenseVector, OneHotVector, ZeroVector};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct SparseVector<const D: usize> {
@@ -18,6 +18,13 @@ impl<const D: usize> SparseVector<D> {
     }
 
     pub(super) fn sum_of_squares(&self) -> f32 {
+        todo!()
+    }
+}
+
+impl<const D: usize> CanAppend for &SparseVector<D> where [(); D+1]: Sized {
+    type Output = SparseVector<{D+1}>;
+    fn append(&self, _extra_val: f32) -> Self::Output {
         todo!()
     }
 }

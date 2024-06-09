@@ -4,7 +4,7 @@ use std::ops::{Add, Index, IndexMut, Mul, Sub};
 
 use crate::linalg::Matrix;
 
-use super::{CanDotProduct, CanMap, CanOuterProduct};
+use super::{CanDotProduct, CanAppend, CanMap, CanOuterProduct};
 use super::constant::ConstantVector;
 use super::dense::DenseVector;
 use super::onehot::OneHotVector;
@@ -83,6 +83,17 @@ impl<const D: usize> Vector<D> {
             (V::Zero(v1), V::OneHot(v2)) => v1.dot(v2),
             (V::Zero(v1), V::Sparse(v2)) => v1.dot(v2),
             (V::Zero(v1), V::Zero(v2)) => v1.dot(v2),
+        }
+    }
+
+    pub fn extend(&self, extra_val: f32) -> Vector<{D+1}> {
+        use Vector as V;
+        match self {
+            V::Constant(v) => V::Dense(v.append(extra_val)),
+            V::Dense(v) => V::Dense(v.append(extra_val)),
+            V::OneHot(v) => V::Sparse(v.append(extra_val)),
+            V::Sparse(v) => V::Sparse(v.append(extra_val)),
+            V::Zero(v) => V::Sparse(v.append(extra_val)),
         }
     }
 

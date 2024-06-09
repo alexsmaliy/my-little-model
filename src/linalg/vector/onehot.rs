@@ -2,7 +2,7 @@ use std::ops::{Add, Index, Mul, Sub};
 
 use crate::linalg::matrix::DenseMatrix;
 
-use super::{CanDotProduct, CanMap, CanOuterProduct, ConstantVector, DenseVector, SparseVector, ZeroVector};
+use super::{CanDotProduct, CanAppend, CanMap, CanOuterProduct, ConstantVector, DenseVector, SparseVector, ZeroVector};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct OneHotVector<const D: usize> {
@@ -28,6 +28,13 @@ impl<const D: usize> OneHotVector<D> {
 
     pub(super) fn sum_of_squares(&self) -> f32 {
         1f32
+    }
+}
+
+impl<const D: usize> CanAppend for &OneHotVector<D> where [(); D+1]: Sized {
+    type Output = SparseVector<{D+1}>;
+    fn append(&self, _extra_val: f32) -> Self::Output {
+        todo!()
     }
 }
 
