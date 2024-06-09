@@ -2,7 +2,7 @@ use std::ops::{Add, Index, Mul, Sub};
 
 use crate::linalg::matrix::DenseMatrix;
 
-use super::{CanDotProduct, CanMap, CanOuterProduct, ConstantVector, DenseVector, SparseVector, ZeroVector};
+use super::{CanDotProduct, CanAppend, CanMap, CanOuterProduct, ConstantVector, DenseVector, SparseVector, ZeroVector};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct OneHotVector<const D: usize> {
@@ -12,11 +12,28 @@ pub struct OneHotVector<const D: usize> {
 }
 
 impl<const D: usize> OneHotVector<D> {
+    // constructor
+    pub fn at_index(index: usize) -> Self {
+        assert!(index < D);
+        OneHotVector {
+            zero: 0f32,
+            one: 1f32,
+            index,
+        }
+    }
+
     pub(super) fn sum(&self) -> f32 {
-        todo!()
+        1f32
     }
 
     pub(super) fn sum_of_squares(&self) -> f32 {
+        1f32
+    }
+}
+
+impl<const D: usize> CanAppend for &OneHotVector<D> where [(); D+1]: Sized {
+    type Output = SparseVector<{D+1}>;
+    fn append(&self, _extra_val: f32) -> Self::Output {
         todo!()
     }
 }
@@ -167,9 +184,9 @@ impl<const D: usize> CanDotProduct<&ZeroVector<D>> for &OneHotVector<D> {
     }
 }
 
-//////////////////////////////////////
-/// CONSTANT VEC DOT PRODUCT IMPLS ///
-//////////////////////////////////////
+////////////////////////////////////////
+/// CONSTANT VEC OUTER PRODUCT IMPLS ///
+////////////////////////////////////////
 
 impl<const D: usize, const D2: usize> CanOuterProduct<&ConstantVector<D2>> for &OneHotVector<D>
     where [(); D*D2]: Sized

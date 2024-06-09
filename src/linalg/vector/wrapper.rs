@@ -4,7 +4,7 @@ use std::ops::{Add, Index, IndexMut, Mul, Sub};
 
 use crate::linalg::Matrix;
 
-use super::{CanDotProduct, CanMap, CanOuterProduct};
+use super::{CanDotProduct, CanAppend, CanMap, CanOuterProduct};
 use super::constant::ConstantVector;
 use super::dense::DenseVector;
 use super::onehot::OneHotVector;
@@ -27,22 +27,18 @@ impl<const D: usize> Vector<D> {
     }
 
     // constructor
-    pub fn from_boxed_slice(slice: Box<[f32]>) -> Self {
-        assert_eq!(slice.len(), D);
-        Self::Dense(DenseVector {
-            data: slice,
-            size_marker: PhantomData,
-        })
+    pub(crate) fn from_boxed_slice(slice: Box<[f32]>) -> Self {
+        Self::Dense(DenseVector::from_boxed_slice(slice))
     }
 
     // constructor
-    pub fn from_fun(f: impl Fn() -> f32) -> Self {
-        Self::Dense(DenseVector::from_arr([0f32; D].map(|_| f())))
+    pub fn from_fun(f: impl Fn(usize) -> f32) -> Self {
+        Self::Dense(DenseVector::from_fun(f))
     }
 
     // constructor
     pub fn one_hot(i: usize) -> Self {
-        Self::OneHot(OneHotVector { zero: 0f32, one: 1f32, index: i })
+        Self::OneHot(OneHotVector::at_index(i))
     }
 
     // constructor
@@ -87,6 +83,17 @@ impl<const D: usize> Vector<D> {
             (V::Zero(v1), V::OneHot(v2)) => v1.dot(v2),
             (V::Zero(v1), V::Sparse(v2)) => v1.dot(v2),
             (V::Zero(v1), V::Zero(v2)) => v1.dot(v2),
+        }
+    }
+
+    pub fn extend(&self, extra_val: f32) -> Vector<{D+1}> {
+        use Vector as V;
+        match self {
+            V::Constant(v) => V::Dense(v.append(extra_val)),
+            V::Dense(v) => V::Dense(v.append(extra_val)),
+            V::OneHot(v) => V::Sparse(v.append(extra_val)),
+            V::Sparse(v) => V::Sparse(v.append(extra_val)),
+            V::Zero(v) => V::Sparse(v.append(extra_val)),
         }
     }
 

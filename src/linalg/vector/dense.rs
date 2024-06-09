@@ -2,7 +2,7 @@ use std::{marker::PhantomData, ops::{Add, Index, IndexMut, Mul, Sub}};
 
 use crate::linalg::matrix::DenseMatrix;
 
-use super::{CanDotProduct, CanMap, CanOuterProduct, ConstantVector, OneHotVector, SparseVector, ZeroVector};
+use super::{CanDotProduct, CanAppend, CanMap, CanOuterProduct, ConstantVector, OneHotVector, SparseVector, ZeroVector};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct DenseVector<const D: usize> {
@@ -18,12 +18,33 @@ impl<const D: usize> DenseVector<D> {
         }
     }
 
+    pub(crate) fn from_boxed_slice(slice: Box<[f32]>) -> Self {
+        assert_eq!(slice.len(), D);
+        Self {
+            data: slice,
+            size_marker: PhantomData,
+        }
+    }
+
+    pub fn from_fun(f: impl Fn(usize) -> f32) -> Self {
+        let mut v = Vec::with_capacity(D);
+        v.extend((0..D).map(f));
+        DenseVector::from_boxed_slice(v.into_boxed_slice())
+    }
+
     pub(super) fn sum(&self) -> f32 {
-        todo!()
+        self.data.iter().sum()
     }
 
     pub(super) fn sum_of_squares(&self) -> f32 {
-        self.data.iter().fold(0f32, |acc, x| acc + x * x)
+        self.data.iter().copied().map(|n| <f32>::powi(n, 2)).sum()
+    }
+}
+
+impl<const D: usize> CanAppend for &DenseVector<D> where [(); D+1]: Sized {
+    type Output = DenseVector<{D+1}>;
+    fn append(&self, _extra_val: f32) -> Self::Output {
+        todo!()
     }
 }
 
@@ -211,13 +232,13 @@ impl<const D: usize, const D2: usize> CanOuterProduct<&DenseVector<D2>> for &Den
     type Output = DenseMatrix<D, D2>;
 
     fn outer(self, other: &DenseVector<D2>) -> Self::Output {
-        let mut v = Vec::with_capacity(D*D2);
+        let mut container = Vec::with_capacity(D*D2);
         for col in 0..D2 {
             let scalar = other[col];
             let x = self.data.into_iter().map(|x| x * scalar);
-            v.extend(x);
+            container.extend(x);
         }
-        DenseMatrix::from_boxed_slice(v.into_boxed_slice())
+        DenseMatrix::from_boxed_slice(container.into_boxed_slice())
     }
 }
 
@@ -261,9 +282,13 @@ impl<const D: usize> Mul<f32> for &DenseVector<D> {
     fn mul(self, rhs: f32) -> Self::Output {
         let f = |x| x * rhs;
         let us = self.data.iter().copied();
-        let mapped = us.map(f).collect::<Box<[f32]>>();
+        let mapped = us.map(f);
+
+        let mut container = Vec::with_capacity(D);
+        container.extend(mapped);
+
         DenseVector {
-            data: mapped,
+            data: container.into_boxed_slice(),
             size_marker: PhantomData,
         }
     }

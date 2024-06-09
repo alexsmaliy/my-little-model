@@ -159,9 +159,12 @@ impl<const R: usize, const C: usize> Sub<&DenseMatrix<R, C>> for &DenseMatrix<R,
         let f = |(a, b)| a - b;
         let us = self.data.iter().copied();
         let them = rhs.data.iter().copied();
-        let mapped = us.zip(them).map(f).collect::<Box<[f32]>>();
+
+        let mut container = Vec::with_capacity(R*C);
+        container.extend(us.zip(them).map(f));
+
         DenseMatrix {
-            data: mapped,
+            data: container.into_boxed_slice(),
             order: self.order,
             size_marker: PhantomData,
         }
@@ -241,10 +244,14 @@ impl<const R: usize, const C: usize, const C2: usize> Mul<&DenseMatrix<C, C2>> f
             rhs.data[from..to].into_iter()
                .enumerate()
                .map(|(j, x)| x * self.data[j * R + i % R])
-               .sum()
-        }).collect();
+               .sum::<f32>()
+        });
+
+        let mut container = Vec::with_capacity(R*C2);
+        container.extend(product);
+
         DenseMatrix {
-            data: product,
+            data: container.into_boxed_slice(),
             order: self.order,
             size_marker: PhantomData,
         }
@@ -325,11 +332,14 @@ impl<const R: usize, const C: usize> Mul<&DenseVector<C>> for &DenseMatrix<R, C>
             rhs.data.into_iter()
                .enumerate()
                .map(|(j, x)| x * self.data[j * R + i])
-               .sum()
-        }).collect();
+               .sum::<f32>()
+        });
+
+        let mut container = Vec::with_capacity(R);
+        container.extend(product);
 
         DenseVector {
-            data: product,
+            data: container.into_boxed_slice(),
             size_marker: PhantomData,
         }
     }
@@ -344,9 +354,13 @@ impl<const R: usize, const C: usize> Add<&DenseMatrix<R, C>> for f32 where [(); 
 
     fn add(self, rhs: &DenseMatrix<R, C>) -> Self::Output {
         let f = |x| x + self;
-        let data = rhs.data.iter().map(f).collect();
+        let data = rhs.data.iter().map(f);
+
+        let mut container = Vec::with_capacity(R*C);
+        container.extend(data);
+
         DenseMatrix {
-            data,
+            data: container.into_boxed_slice(),
             order: rhs.order,
             size_marker: PhantomData,
         }
@@ -382,9 +396,13 @@ impl<const R: usize, const C: usize> Mul<f32> for &DenseMatrix<R, C> where [(); 
 
     fn mul(self, rhs: f32) -> Self::Output {
         let f = |x| x * rhs;
-        let data = self.data.iter().map(f).collect();
+        let data = self.data.iter().map(f);
+
+        let mut container = Vec::with_capacity(R*C);
+        container.extend(data);
+
         DenseMatrix {
-            data,
+            data: container.into_boxed_slice(),
             order: self.order,
             size_marker: PhantomData,
         }

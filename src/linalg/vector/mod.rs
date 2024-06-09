@@ -17,6 +17,11 @@ mod sparse;
 mod wrapper;
 mod zero;
 
+trait CanAppend {
+    type Output;
+    fn append(&self, extra_val: f32) -> Self::Output;
+}
+
 trait CanDotProduct<V> {
     fn dot(&self, other: V) -> f32;
 }
