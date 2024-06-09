@@ -100,7 +100,7 @@ fn kitchen_sink_test() {
     // println!("{}\t{}", model.layers.2.W, model.layers.2.b);
     // println!("");
     for i in 0..5000 {
-        model.run_once(&input, &target);
+        model.train_single(&input, &target);
         if i % 100 == 0 {
             println!("[{i:>4}/5000] Loss: {}", model.loss);
         }

@@ -43,27 +43,25 @@ impl<const IN: usize, const OUT: usize, F: ActivationFunction> ModelLayer<IN, OU
 {
     fn forward(&mut self, prev_output: &Vector<IN>) {
         self.n = &(&self.W * prev_output) + &self.b;
-        self.a = self.n.map(self.activation_function.get_f());
+        let f = self.activation_function.get_f();
+        self.a = self.n.map(f);
     }
 
-    fn backward(&mut self, upstream_Wᵀs: &Vector<OUT>) {
-        /*
+    fn backward(&mut self, Wᵀs_succ: &Vector<OUT>) {
         // needs: n_i and df_i, but WT_i+1 and s_i+1
         // thus: get upstream Wᵀs to compute and set own Wᵀs
-
-        let x = self.n1.map(self.df1).into();
-        let y = Matrix::diag(&x);
-        self.s1 = &y * &(&self.w2.T() * &self.s2);
-         */
-        let x = self.n.map(self.activation_function.get_df()).into();
-        let y = Matrix::diag(x);
-        self.s = &y * upstream_Wᵀs;
+        let df = self.activation_function.get_df();
+        let Ḟn = Matrix::diag(self.n.map(df));
+        self.s = &Ḟn * Wᵀs_succ;
         self.Wᵀs = &self.W.T() * &self.s;
     }
 
-    fn update_weights(&mut self, learning_rate: f32, a_prev: &Vector<IN>) {
-        self.W = &self.W - &(learning_rate * &(self.s.outer(a_prev)));
-        self.b = &self.b - &(learning_rate * &self.s);
+    fn update_params(&mut self, learning_rate: f32, a_pred: &Vector<IN>) {
+        let ref dLdW = self.s.outer(a_pred);
+        self.W = &self.W - &(learning_rate * dLdW);
+
+        let ref dLdb = self.s;
+        self.b = &self.b - &(learning_rate * dLdb);
     }
 
     fn nonlinear_output(&self) -> &Vector<OUT> {
@@ -87,7 +85,7 @@ impl<const IN: usize, const OUT: usize, F: ActivationFunction> ModelLayer<IN, OU
         self.s = s;
     }
 
-    fn sensitivities(&self) -> &Vector<IN> {
+    fn get_sensitivities(&self) -> &Vector<IN> {
         &self.Wᵀs
     }
 }

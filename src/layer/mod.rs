@@ -12,17 +12,17 @@ pub trait ModelLayer<const IN: usize, const OUT: usize>
 {
     fn forward(&mut self, input_src: &Vector<IN>);
     fn backward(&mut self, upstream_Wᵀs: &Vector<OUT>);
-    fn update_weights(&mut self, learning_rate: f32, a_prev: &Vector<IN>);
+    fn update_params(&mut self, learning_rate: f32, a_prev: &Vector<IN>);
     fn nonlinear_output(&self) -> &Vector<OUT>;
     fn linear_output(&self) -> &Vector<OUT>;
     fn f(&self) -> Box<dyn Fn(f32) -> f32 + 'static>;
     fn df(&self) -> Box<dyn Fn(f32) -> f32 + 'static>;
+    fn get_sensitivities(&self) -> &Vector<IN>;
     fn set_sensitivities(&mut self, s: Vector<OUT>);
-    fn sensitivities(&self) -> &Vector<IN>;
 }
 
 pub trait ModelLayerChain<const IN: usize, const OUT: usize, T> {
-    fn run_once<L: LossFunction>(
+    fn train_single<L: LossFunction>(
         &mut self,
         input_pair: (&Vector<IN>, &Vector<OUT>),
         loss_function: L,
@@ -56,7 +56,7 @@ impl<
     [(); D*C]: Sized,
     [(); D*D]: Sized,
 {
-    fn run_once<LF: LossFunction>(
+    fn train_single<LF: LossFunction>(
         &mut self,
         input_pair: (&Vector<A>, &Vector<D>),
         loss_function: LF,
@@ -88,12 +88,12 @@ impl<
         let s_last = &da_dn * &dL_da;
 
         self.2.set_sensitivities(s_last);
-        self.1.backward(self.2.sensitivities());
-        self.0.backward(self.1.sensitivities());
+        self.1.backward(self.2.get_sensitivities());
+        self.0.backward(self.1.get_sensitivities());
 
-        self.0.update_weights(learning_rate, item);
-        self.1.update_weights(learning_rate, self.0.nonlinear_output());
-        self.2.update_weights(learning_rate, self.1.nonlinear_output());
+        self.0.update_params(learning_rate, item);
+        self.1.update_params(learning_rate, self.0.nonlinear_output());
+        self.2.update_params(learning_rate, self.1.nonlinear_output());
 
         return ModelOutput {
             loss,
