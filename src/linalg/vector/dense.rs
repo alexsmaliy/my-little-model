@@ -2,7 +2,8 @@ use std::{marker::PhantomData, ops::{Add, AddAssign, Index, IndexMut, Mul, Sub}}
 
 use crate::linalg::matrix::DenseMatrix;
 
-use super::{CanDotProduct, CanAppend, CanMap, CanOuterProduct, ConstantVector, OneHotVector, SparseVector, ZeroVector};
+use super::{ConstantVector, OneHotVector, SparseVector, ZeroVector};
+use super::traits::{CanDotProduct, CanAppend, CanMap, CanOuterProduct};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct DenseVector<const D: usize> {

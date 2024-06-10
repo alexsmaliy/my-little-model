@@ -2,7 +2,8 @@ use std::ops::{Add, Index, Mul, Sub};
 
 use crate::linalg::matrix::DenseMatrix;
 
-use super::{CanDotProduct, CanAppend, CanMap, CanOuterProduct, ConstantVector, DenseVector, OneHotVector, SparseVector};
+use super::{ConstantVector, DenseVector, OneHotVector, SparseVector};
+use super::traits::{CanDotProduct, CanAppend, CanMap, CanOuterProduct};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ZeroVector<const D: usize>(

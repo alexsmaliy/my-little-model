@@ -4,7 +4,8 @@ use ahash::RandomState;
 
 use crate::linalg::matrix::DenseMatrix;
 
-use super::{CanDotProduct, CanAppend, CanMap, CanOuterProduct, ConstantVector, DenseVector, OneHotVector, ZeroVector};
+use super::{ConstantVector, DenseVector, OneHotVector, ZeroVector};
+use super::traits::{CanDotProduct, CanAppend, CanMap, CanOuterProduct};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct SparseVector<const D: usize> {

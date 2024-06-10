@@ -3,7 +3,7 @@ use std::ops::{Add, AddAssign, Index, IndexMut, Mul, Sub};
 
 use crate::linalg::Matrix;
 
-use super::{CanDotProduct, CanAppend, CanMap, CanOuterProduct};
+use super::traits::{CanDotProduct, CanAppend, CanMap, CanOuterProduct};
 use super::constant::ConstantVector;
 use super::dense::DenseVector;
 use super::onehot::OneHotVector;
