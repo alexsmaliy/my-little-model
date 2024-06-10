@@ -1,4 +1,4 @@
-use std::{collections::HashMap, ops::{Add, Index, Mul, Sub}};
+use std::{collections::HashMap, ops::{Add, AddAssign, Index, Mul, Sub}};
 
 use ahash::RandomState;
 
@@ -85,6 +85,18 @@ impl<const D: usize> Add<&ZeroVector<D>> for &SparseVector<D> {
     type Output = SparseVector<D>;
 
     fn add(self, _rhs: &ZeroVector<D>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const D: usize> AddAssign<&OneHotVector<D>> for SparseVector<D> {
+    fn add_assign(&mut self, _rhs: &OneHotVector<D>) {
+        todo!()
+    }
+}
+
+impl<const D: usize> AddAssign<&SparseVector<D>> for SparseVector<D> {
+    fn add_assign(&mut self, _rhs: &SparseVector<D>) {
         todo!()
     }
 }

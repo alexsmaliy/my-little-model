@@ -1,6 +1,5 @@
 use std::collections::HashMap;
-use std::marker::PhantomData;
-use std::ops::{Add, Index, IndexMut, Mul, Sub};
+use std::ops::{Add, AddAssign, Index, IndexMut, Mul, Sub};
 
 use crate::linalg::Matrix;
 
@@ -243,6 +242,56 @@ impl<const D: usize> Add<f32> for &Vector<D> {
             V::OneHot(v) => V::Dense(v + rhs),
             V::Sparse(v) => V::Dense(v + rhs),
             V::Zero(v) => V::Constant(v + rhs),
+        }
+    }
+}
+
+impl<const D: usize> AddAssign<&Vector<D>> for Vector<D> {
+    fn add_assign(&mut self, rhs: &Vector<D>) {
+        use Vector as V;
+        match (&mut *self, rhs) {
+            (V::Constant(ref mut v1), V::Constant(v2)) => *v1 += v2,
+            (V::Constant(v1), V::Dense(v2)) => *self = V::Dense(&*v1 + v2),
+            (V::Constant(v1), V::OneHot(v2)) => *self = V::Dense(&*v1 + v2),
+            (V::Constant(v1), V::Sparse(v2)) => *self = V::Dense(&*v1 + v2),
+            (V::Constant(_), V::Zero(_)) => {}, // no-op
+
+            (V::Dense(ref mut v1), V::Constant(v2)) => *v1 += v2,
+            (V::Dense(ref mut v1), V::Dense(v2)) => *v1 += v2,
+            (V::Dense(ref mut v1), V::OneHot(v2)) => *v1 += v2,
+            (V::Dense(ref mut v1), V::Sparse(v2)) => *v1 += v2,
+            (V::Dense(_), V::Zero(_)) => {}, // no-op
+
+            (V::OneHot(v1), V::Constant(v2)) => *self = V::Dense(&*v1 + v2),
+            (V::OneHot(v1), V::Dense(v2)) => *self = V::Dense(&*v1 + v2),
+            (V::OneHot(v1), V::OneHot(v2)) => *self = V::Sparse(&*v1 + v2),
+            (V::OneHot(v1), V::Sparse(v2)) => *self = V::Sparse(&*v1 + v2),
+            (V::OneHot(_), V::Zero(_)) => {}, // no-op
+
+            (V::Sparse(v1), V::Constant(v2)) => *self = V::Dense(&*v1 + v2),
+            (V::Sparse(v1), V::Dense(v2)) => *self = V::Dense(&*v1 + v2),
+            (V::Sparse(ref mut v1), V::OneHot(v2)) => *v1 += v2,
+            (V::Sparse(ref mut v1), V::Sparse(v2)) => *v1 += v2,
+            (V::Sparse(_), V::Zero(_)) => {}, // no-op
+
+            (V::Zero(_), rhs @ V::Constant(_)) => *self = rhs.clone(),
+            (V::Zero(_), rhs @ V::Dense(_)) => *self = rhs.clone(),
+            (V::Zero(_), rhs @ V::OneHot(_)) => *self = rhs.clone(),
+            (V::Zero(_), rhs @ V::Sparse(_)) => *self = rhs.clone(),
+            (V::Zero(_), V::Zero(_)) => {}, // no-op
+        }
+    }
+}
+
+impl<const D: usize> AddAssign<f32> for Vector<D> {
+    fn add_assign(&mut self, rhs: f32) {
+        use Vector as V;
+        match self {
+            V::Constant(ref mut v) => *v += rhs,
+            V::Dense(ref mut v) => *v += rhs,
+            V::OneHot(v) => *self = V::Dense(&*v + rhs),
+            V::Sparse(v) => *self = V::Dense(&*v + rhs),
+            V::Zero(v) => *self = V::Constant(&*v + rhs),
         }
     }
 }

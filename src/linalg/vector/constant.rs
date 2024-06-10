@@ -1,4 +1,4 @@
-use std::ops::{Add, Index, Mul, Sub};
+use std::ops::{Add, AddAssign, Index, Mul, Sub};
 
 use crate::linalg::matrix::DenseMatrix;
 
@@ -83,6 +83,18 @@ impl<const D: usize> Add<&ZeroVector<D>> for &ConstantVector<D> {
 
     fn add(self, _rhs: &ZeroVector<D>) -> Self::Output {
         todo!()
+    }
+}
+
+impl<const D: usize> AddAssign<&ConstantVector<D>> for ConstantVector<D> {
+    fn add_assign(&mut self, rhs: &ConstantVector<D>) {
+        self.0 += rhs.0
+    }
+}
+
+impl<const D: usize> AddAssign<f32> for ConstantVector<D> {
+    fn add_assign(&mut self, rhs: f32) {
+        self.0 += rhs
     }
 }
 

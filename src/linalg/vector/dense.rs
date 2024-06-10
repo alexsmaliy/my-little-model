@@ -1,4 +1,4 @@
-use std::{marker::PhantomData, ops::{Add, Index, IndexMut, Mul, Sub}};
+use std::{marker::PhantomData, ops::{Add, AddAssign, Index, IndexMut, Mul, Sub}};
 
 use crate::linalg::matrix::DenseMatrix;
 
@@ -115,6 +115,36 @@ impl<const D: usize> Add<&ZeroVector<D>> for &DenseVector<D> {
     type Output = DenseVector<D>;
 
     fn add(self, _rhs: &ZeroVector<D>) -> Self::Output {
+        todo!()
+    }
+}
+
+impl<const D: usize> AddAssign<&ConstantVector<D>> for DenseVector<D> {
+    fn add_assign(&mut self, _rhs: &ConstantVector<D>) {
+        todo!()
+    }
+}
+
+impl<const D: usize> AddAssign<&DenseVector<D>> for DenseVector<D> {
+    fn add_assign(&mut self, _rhs: &DenseVector<D>) {
+        todo!()
+    }
+}
+
+impl<const D: usize> AddAssign<&OneHotVector<D>> for DenseVector<D> {
+    fn add_assign(&mut self, _rhs: &OneHotVector<D>) {
+        todo!()
+    }
+}
+
+impl<const D: usize> AddAssign<&SparseVector<D>> for DenseVector<D> {
+    fn add_assign(&mut self, _rhs: &SparseVector<D>) {
+        todo!()
+    }
+}
+
+impl<const D: usize> AddAssign<f32> for DenseVector<D> {
+    fn add_assign(&mut self, _rhs: f32) {
         todo!()
     }
 }
