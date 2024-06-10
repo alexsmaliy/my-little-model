@@ -2,7 +2,8 @@ use std::ops::{Add, Index, Mul, Sub};
 
 use crate::linalg::matrix::DenseMatrix;
 
-use super::{CanDotProduct, CanAppend, CanMap, CanOuterProduct, ConstantVector, DenseVector, SparseVector, ZeroVector};
+use super::{ConstantVector, DenseVector, SparseVector, ZeroVector};
+use super::traits::{CanDotProduct, CanAppend, CanMap, CanOuterProduct};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct OneHotVector<const D: usize> {
@@ -31,14 +32,14 @@ impl<const D: usize> OneHotVector<D> {
     }
 }
 
-impl<const D: usize> CanAppend for &OneHotVector<D> where [(); D+1]: Sized {
+impl<const D: usize> CanAppend for OneHotVector<D> where [(); D+1]: Sized {
     type Output = SparseVector<{D+1}>;
     fn append(&self, _extra_val: f32) -> Self::Output {
         todo!()
     }
 }
 
-impl<const D: usize> CanMap for &OneHotVector<D> {
+impl<const D: usize> CanMap for OneHotVector<D> {
     type Output = DenseVector<D>;
 
     fn map(&self, _f: impl Fn(f32) -> f32) -> Self::Output {
@@ -188,52 +189,52 @@ impl<const D: usize> CanDotProduct<&ZeroVector<D>> for &OneHotVector<D> {
 /// CONSTANT VEC OUTER PRODUCT IMPLS ///
 ////////////////////////////////////////
 
-impl<const D: usize, const D2: usize> CanOuterProduct<&ConstantVector<D2>> for &OneHotVector<D>
+impl<const D: usize, const D2: usize> CanOuterProduct<&ConstantVector<D2>> for OneHotVector<D>
     where [(); D*D2]: Sized
 {
     type Output = DenseMatrix<D, D2>;
 
-    fn outer(self, _other: &ConstantVector<D2>) -> Self::Output {
+    fn outer(&self, _other: &ConstantVector<D2>) -> Self::Output {
         todo!()
     }
 }
 
-impl<const D: usize, const D2: usize> CanOuterProduct<&DenseVector<D2>> for &OneHotVector<D>
+impl<const D: usize, const D2: usize> CanOuterProduct<&DenseVector<D2>> for OneHotVector<D>
     where [(); D*D2]: Sized
 {
     type Output = DenseMatrix<D, D2>;
 
-    fn outer(self, _other: &DenseVector<D2>) -> Self::Output {
+    fn outer(&self, _other: &DenseVector<D2>) -> Self::Output {
         todo!()
     }
 }
 
-impl<const D: usize, const D2: usize> CanOuterProduct<&OneHotVector<D2>> for &OneHotVector<D>
+impl<const D: usize, const D2: usize> CanOuterProduct<&OneHotVector<D2>> for OneHotVector<D>
     where [(); D*D2]: Sized
 {
     type Output = DenseMatrix<D, D2>;
 
-    fn outer(self, _other: &OneHotVector<D2>) -> Self::Output {
+    fn outer(&self, _other: &OneHotVector<D2>) -> Self::Output {
         todo!()
     }
 }
 
-impl<const D: usize, const D2: usize> CanOuterProduct<&SparseVector<D2>> for &OneHotVector<D>
+impl<const D: usize, const D2: usize> CanOuterProduct<&SparseVector<D2>> for OneHotVector<D>
     where [(); D*D2]: Sized
 {
     type Output = DenseMatrix<D, D2>;
 
-    fn outer(self, _other: &SparseVector<D2>) -> Self::Output {
+    fn outer(&self, _other: &SparseVector<D2>) -> Self::Output {
         todo!()
     }
 }
 
-impl<const D: usize, const D2: usize> CanOuterProduct<&ZeroVector<D2>> for &OneHotVector<D>
+impl<const D: usize, const D2: usize> CanOuterProduct<&ZeroVector<D2>> for OneHotVector<D>
     where [(); D*D2]: Sized
 {
     type Output = DenseMatrix<D, D2>;
     
-    fn outer(self, _other: &ZeroVector<D2>) -> Self::Output {
+    fn outer(&self, _other: &ZeroVector<D2>) -> Self::Output {
         todo!()
     }
 }

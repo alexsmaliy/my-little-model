@@ -1,5 +1,5 @@
 use std::marker::PhantomData;
-use std::ops::{Add, Mul, Neg, Sub};
+use std::ops::{Add, AddAssign, Mul, Neg, Sub};
 
 use crate::linalg::vector::Vector;
 
@@ -142,6 +142,69 @@ impl<const R: usize, const C: usize> Add<&Matrix<R, C>> for &Matrix<R, C> where 
             (M::Zero(m1), M::Identity(m2)) => M::Identity(m1 + m2),
             (M::Zero(m1), M::Sparse(m2)) => M::Sparse(m1 + m2),
             (M::Zero(m1), M::Zero(m2)) => M::Zero(m1 + m2),
+        }
+    }
+}
+
+impl<const R: usize, const C: usize> AddAssign<&Matrix<R, C>> for Matrix<R, C> where [(); R*C]: Sized {
+    fn add_assign(&mut self, rhs: &Matrix<R, C>) {
+        use Matrix as M;
+        match (&mut *self, rhs) {
+            (M::Constant(_m1), M::Constant(_m2)) => todo!(),
+            (M::Constant(_m1), M::Dense(_m2)) => todo!(),
+            (M::Constant(_m1), M::Diagonal(_m2)) => todo!(),
+            (M::Constant(_m1), M::Identity(_m2)) => todo!(),
+            (M::Constant(_m1), M::Sparse(_m2)) => todo!(),
+            (M::Constant(_m1), M::Zero(_m2)) => todo!(),
+
+            (M::Dense(_m1), M::Constant(_m2)) => todo!(),
+            (M::Dense(_m1), M::Dense(_m2)) => todo!(),
+            (M::Dense(_m1), M::Diagonal(_m2)) => todo!(),
+            (M::Dense(_m1), M::Identity(_m2)) => todo!(),
+            (M::Dense(_m1), M::Sparse(_m2)) => todo!(),
+            (M::Dense(_m1), M::Zero(_m2)) => todo!(),
+
+            (M::Diagonal(_m1), M::Constant(_m2)) => todo!(),
+            (M::Diagonal(_m1), M::Dense(_m2)) => todo!(),
+            (M::Diagonal(_m1), M::Diagonal(_m2)) => todo!(),
+            (M::Diagonal(_m1), M::Identity(_m2)) => todo!(),
+            (M::Diagonal(_m1), M::Sparse(_m2)) => todo!(),
+            (M::Diagonal(_m1), M::Zero(_m2)) => todo!(),
+
+            (M::Identity(_m1), M::Constant(_m2)) => todo!(),
+            (M::Identity(_m1), M::Dense(_m2)) => todo!(),
+            (M::Identity(_m1), M::Diagonal(_m2)) => todo!(),
+            (M::Identity(_m1), M::Identity(_m2)) => todo!(),
+            (M::Identity(_m1), M::Sparse(_m2)) => todo!(),
+            (M::Identity(_m1), M::Zero(_m2)) => todo!(),
+
+            (M::Sparse(_m1), M::Constant(_m2)) => todo!(),
+            (M::Sparse(_m1), M::Dense(_m2)) => todo!(),
+            (M::Sparse(_m1), M::Diagonal(_m2)) => todo!(),
+            (M::Sparse(_m1), M::Identity(_m2)) => todo!(),
+            (M::Sparse(_m1), M::Sparse(_m2)) => todo!(),
+            (M::Sparse(_m1), M::Zero(_m2)) => todo!(),
+
+            (M::Zero(_m1), M::Constant(_m2)) => todo!(),
+            (M::Zero(_m1), M::Dense(_m2)) => todo!(),
+            (M::Zero(_m1), M::Diagonal(_m2)) => todo!(),
+            (M::Zero(_m1), M::Identity(_m2)) => todo!(),
+            (M::Zero(_m1), M::Sparse(_m2)) => todo!(),
+            (M::Zero(_m1), M::Zero(_m2)) => todo!(),
+        }
+    }
+}
+
+impl<const R: usize, const C: usize> AddAssign<f32> for Matrix<R, C> where [(); R*C]: Sized {
+    fn add_assign(&mut self, _rhs: f32) {
+        use Matrix as M;
+        match self {
+            M::Constant(_m) => todo!(),
+            M::Dense(_m) => todo!(),
+            M::Diagonal(_m) => todo!(),
+            M::Identity(_m) => todo!(),
+            M::Sparse(_m) => todo!(),
+            M::Zero(_m) => todo!(),
         }
     }
 }
